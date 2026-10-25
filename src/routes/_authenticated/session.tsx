@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtTime, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
+import { fmtTime, finish, sessionActiveTooLong, sessionShowsStop, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
 
 export const Route = createFileRoute("/_authenticated/session")({
   head: () => ({
@@ -42,6 +42,15 @@ function Session() {
     if (s && store.getActive() && now >= s.promptAt) nav({ to: "/prompt" });
   }, [s, now, nav]);
 
+  const stopNow = () => {
+    const active = store.getActive();
+    if (!active) return;
+    store.addRecord(finish(active, Date.now()));
+    store.setActive(null);
+    nav({ to: "/progress" });
+  };
+
+
 
   if (!loaded) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
 
@@ -67,7 +76,19 @@ function Session() {
         until your {s.extensions ? "next" : "1-hour"} alarm at {fmtTime(s.promptAt)}
         {s.extensions > 0 && ` (snoozed ${s.extensions}×)`}
       </p>
+      {sessionShowsStop(s) &&
+        (sessionActiveTooLong(s, now) ? (
+          <div className="mt-10">
+            <button className="btn-primary block w-full opacity-50" disabled aria-disabled="true">Stop</button>
+            <p className="mt-3 text-center text-sm text-(--warn)">
+              This session has been running for more than 2 hours, so it can no longer be stopped manually. Start a fresh session from Home.
+            </p>
+          </div>
+        ) : (
+          <button className="btn-primary mt-10 block w-full" onClick={stopNow}>Stop</button>
+        ))}
       <p className="mt-12 text-center text-sm text-muted-foreground">Keep this page open so the alarm screen can appear.</p>
+
     </Shell>
   );
 }

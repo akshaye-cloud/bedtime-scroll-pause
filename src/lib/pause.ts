@@ -45,6 +45,11 @@ export function createSession(hhmm: string, now: number): ActiveSession {
 
 export const ACTIVE_LIMIT_MIN = 2 * 60;
 
+/** The session page shows Stop only after the alarm was extended (+10 mins or auto-snooze). */
+export function sessionShowsStop(s: ActiveSession): boolean {
+  return s.extensions > 0;
+}
+
 /** Stop is disabled once the session has been running for more than 2 hours. */
 export function sessionActiveTooLong(s: ActiveSession, now: number): boolean {
   return now - s.startedAt > ACTIVE_LIMIT_MIN * 60000;

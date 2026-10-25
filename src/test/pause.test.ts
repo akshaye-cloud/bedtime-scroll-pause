@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -64,6 +64,12 @@ describe("pause rules", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
     expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
     expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
+  });
+  it("the session page offers Stop only after the prompt was extended", () => {
+    expect(sessionShowsStop(createSession("23:00", base))).toBe(false);
+    expect(sessionShowsStop(extend(createSession("23:00", base)))).toBe(true);
+    const snoozed = autoSnooze(showPrompt(createSession("23:00", base), base), base + 2 * min);
+    expect(snoozed && sessionShowsStop(snoozed)).toBe(true);
   });
   it("disables Stop once the session runs for more than 2 hours", () => {
     const s = createSession("23:00", base);
