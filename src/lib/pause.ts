@@ -224,6 +224,15 @@ export const fmtTime = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 export const fmtDate = (t: number) =>
   new Date(t).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "Sunday, 25 October 2026" — always the same shape, whatever the browser locale. */
+export const fmtFullDate = (t: number) => {
+  const d = new Date(t);
+  return `${DAY_NAMES[d.getDay()]}, ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+};
 export const outcomeLabel: Record<Outcome, string> = {
   stopped_early: "Stopped early",
   stopped_on_time: "Stopped on time",

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtTime, nextOccurrence, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, nextOccurrence, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,7 +76,8 @@ function Home() {
       <p className="mt-3 text-lg text-muted-foreground">Pick your sleep time. Start a session, and Pause will sound an alarm here 1 hour before that time.</p>
 
       <div className="panel mt-8">
-        <label htmlFor="sleep" className="text-base text-muted-foreground">Sleep time</label>
+        <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
+        <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
         <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         <div className="mt-3 flex items-center justify-between text-base">
