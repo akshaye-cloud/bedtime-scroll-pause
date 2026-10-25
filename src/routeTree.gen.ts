@@ -9,39 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedContinueRouteImport } from './routes/_authenticated/continue'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedPromptRouteImport } from './routes/_authenticated/prompt'
 import { Route as AuthenticatedSessionRouteImport } from './routes/_authenticated/session'
 
-const AuthenticatedContinueRoute = AuthenticatedContinueRouteImport.update({
-  id: '/_authenticated/continue',
-  path: '/continue',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedContinueRoute = AuthenticatedContinueRouteImport.update({
+  id: '/continue',
+  path: '/continue',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/_authenticated/home',
+  id: '/home',
   path: '/home',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
-  id: '/_authenticated/progress',
+  id: '/progress',
   path: '/progress',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPromptRoute = AuthenticatedPromptRouteImport.update({
-  id: '/_authenticated/prompt',
+  id: '/prompt',
   path: '/prompt',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSessionRoute = AuthenticatedSessionRouteImport.update({
-  id: '/_authenticated/session',
+  id: '/session',
   path: '/session',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/continue': typeof AuthenticatedContinueRoute
   '/home': typeof AuthenticatedHomeRoute
   '/progress': typeof AuthenticatedProgressRoute
@@ -49,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/continue': typeof AuthenticatedContinueRoute
   '/home': typeof AuthenticatedHomeRoute
   '/progress': typeof AuthenticatedProgressRoute
@@ -57,6 +70,8 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/continue': typeof AuthenticatedContinueRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
@@ -65,11 +80,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  fullPaths: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  to: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
   id:
     | '__root__'
+    | '/'
+    | '/_authenticated'
     | '/_authenticated/continue'
     | '/_authenticated/home'
     | '/_authenticated/progress'
@@ -78,6 +95,65 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/continue': {
+      id: '/_authenticated/continue'
+      path: '/continue'
+      fullPath: '/continue'
+      preLoaderRoute: typeof AuthenticatedContinueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prompt': {
+      id: '/_authenticated/prompt'
+      path: '/prompt'
+      fullPath: '/prompt'
+      preLoaderRoute: typeof AuthenticatedPromptRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/session': {
+      id: '/_authenticated/session'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof AuthenticatedSessionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+  }
+}
+
+interface AuthenticatedRouteRouteChildren {
   AuthenticatedContinueRoute: typeof AuthenticatedContinueRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
@@ -85,52 +161,20 @@ export interface RootRouteChildren {
   AuthenticatedSessionRoute: typeof AuthenticatedSessionRoute
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/_authenticated/continue': {
-      id: '/_authenticated/continue'
-      path: '/continue'
-      fullPath: '/continue'
-      preLoaderRoute: typeof AuthenticatedContinueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/progress': {
-      id: '/_authenticated/progress'
-      path: '/progress'
-      fullPath: '/progress'
-      preLoaderRoute: typeof AuthenticatedProgressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/prompt': {
-      id: '/_authenticated/prompt'
-      path: '/prompt'
-      fullPath: '/prompt'
-      preLoaderRoute: typeof AuthenticatedPromptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/session': {
-      id: '/_authenticated/session'
-      path: '/session'
-      fullPath: '/session'
-      preLoaderRoute: typeof AuthenticatedSessionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
-}
-
-const rootRouteChildren: RootRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContinueRoute: AuthenticatedContinueRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedPromptRoute: AuthenticatedPromptRoute,
   AuthenticatedSessionRoute: AuthenticatedSessionRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
