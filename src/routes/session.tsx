@@ -1,0 +1,69 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Shell, PrimaryButton } from "@/components/Shell";
+import { finish, fmtTime, store, type ActiveSession } from "@/lib/pause";
+
+export const Route = createFileRoute("/session")({
+  head: () => ({
+    meta: [
+      { title: "Pause — Active session" },
+      { name: "description", content: "Your pre-bedtime session countdown." },
+      { property: "og:title", content: "Pause — Active session" },
+      { property: "og:description", content: "Countdown to your intended stopping time." },
+    ],
+  }),
+  component: Session,
+});
+
+function Session() {
+  const nav = useNavigate();
+  const [s, setS] = useState<ActiveSession | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [now, setNow] = useState(0);
+
+  useEffect(() => {
+    setS(store.getActive()); setNow(Date.now()); setLoaded(true);
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (s && now >= s.promptAt) nav({ to: "/prompt" });
+  }, [s, now, nav]);
+
+  const stopNow = () => {
+    if (!s) return;
+    store.addRecord(finish(s, Date.now()));
+    store.setActive(null);
+    nav({ to: "/progress" });
+  };
+
+  if (!loaded) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
+
+  if (!s) {
+    return (
+      <Shell>
+        <h1 className="font-display text-3xl">No active session</h1>
+        <p className="mt-3 text-lg text-muted-foreground">Set your sleep time and start a session from Home.</p>
+        <Link to="/" className="btn-primary mt-8 block w-full text-center">Go to Home</Link>
+      </Shell>
+    );
+  }
+
+  const left = Math.max(0, s.promptAt - now);
+  const h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000), sec = Math.floor((left % 60000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <Shell>
+      <p className="text-center text-base uppercase tracking-widest text-muted-foreground">Session active</p>
+      <div className="mt-6 text-center font-display text-7xl tabular-nums">{h > 0 ? `${h}:` : ""}{pad(m)}:{pad(sec)}</div>
+      <p className="mt-4 text-center text-lg text-muted-foreground">
+        until your {s.extensions ? "next" : "stopping"} prompt at {fmtTime(s.promptAt)}
+        {s.extensions > 0 && ` (extended ${s.extensions}×)`}
+      </p>
+      <PrimaryButton className="mt-12 w-full" onClick={stopNow}>I'm stopping now</PrimaryButton>
+      <p className="mt-4 text-center text-sm text-muted-foreground">Keep this page open so the stopping screen can appear.</p>
+    </Shell>
+  );
+}

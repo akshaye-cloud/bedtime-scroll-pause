@@ -1,24 +1,71 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Shell, PrimaryButton } from "@/components/Shell";
+import { createSession, fmtTime, nextOccurrence, store } from "@/lib/pause";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Pause — Set your stopping time" },
+      { name: "description", content: "Set the time you intend to put your phone down tonight." },
+      { property: "og:title", content: "Pause — Bedtime Scrolling Assistant" },
+      { property: "og:description", content: "Record and follow your intended bedtime stopping time." },
+    ],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const nav = useNavigate();
+  const [time, setTime] = useState("23:00");
+  const [saved, setSaved] = useState<string | null>(null);
+  const [hasActive, setHasActive] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const t = store.getSleepTime();
+    if (t) { setTime(t); setSaved(t); }
+    setHasActive(!!store.getActive());
+  }, []);
+
+  const valid = /^\d{2}:\d{2}$/.test(time);
+  const save = () => {
+    if (!valid) return setError("Please choose a valid time.");
+    store.setSleepTime(time); setSaved(time); setError("");
+  };
+  const start = () => {
+    if (!valid) return setError("Please choose a valid time.");
+    store.setSleepTime(time);
+    store.setActive(createSession(time, Date.now()));
+    nav({ to: "/session" });
+  };
+
+  const target = valid ? nextOccurrence(time, Date.now()) : null;
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <Shell>
+      <h1 className="font-display text-4xl leading-tight">When do you want to stop scrolling?</h1>
+      <p className="mt-3 text-lg text-muted-foreground">Pick your sleep time. Start a session about an hour before, and Pause will show a stopping screen here when the time arrives.</p>
+
+      <div className="panel mt-8">
+        <label htmlFor="sleep" className="text-base text-muted-foreground">Sleep time</label>
+        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" />
+        {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
+        <div className="mt-3 flex items-center justify-between text-base">
+          <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
+          <button onClick={save} className="link-btn">Save time</button>
+        </div>
+      </div>
+
+      {hasActive ? (
+        <PrimaryButton className="mt-8 w-full" onClick={() => nav({ to: "/session" })}>Return to active session</PrimaryButton>
+      ) : (
+        <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid}>Start pre-bedtime session</PrimaryButton>
+      )}
+      {target && !hasActive && (
+        <p className="mt-3 text-center text-muted-foreground">Your stopping screen will appear at {fmtTime(target)}. Keep this page open.</p>
+      )}
+      <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
+    </Shell>
   );
 }
