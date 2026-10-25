@@ -115,6 +115,29 @@ export function summarize(records: SessionRecord[]) {
   return { total, onTime, continued, avgBeyond, rate: total ? Math.round((onTime / total) * 100) : 0 };
 }
 
+/** Local calendar day key for grouping, e.g. "2026-10-25". */
+export function dayKey(t: number): string {
+  const d = new Date(t);
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+/**
+ * One entry per day: when several sessions end on the same day, keep the latest
+ * (records are stored newest-first, so the first per day wins). The next day's
+ * session then appears as its own entry.
+ */
+export function latestPerDay(records: SessionRecord[]): SessionRecord[] {
+  const seen = new Set<string>();
+  const out: SessionRecord[] = [];
+  for (const r of records) {
+    const k = dayKey(r.sleepAt);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(r);
+  }
+  return out;
+}
+
 function read<T>(key: string, fallback: T): T {
   try {
     const v = localStorage.getItem(key);

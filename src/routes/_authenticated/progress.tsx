@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtDate, fmtTime, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
+import { fmtDate, fmtTime, latestPerDay, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
