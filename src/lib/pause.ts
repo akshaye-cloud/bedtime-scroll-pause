@@ -24,7 +24,7 @@ const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.rec
 export function nextOccurrence(hhmm: string, now: number): number {
   const [h, m] = hhmm.split(":").map(Number);
   const d = new Date(now);
-  d.setHours(h, m, 0, 0);
+  d.setHours(h ?? 0, m ?? 0, 0, 0);
   if (d.getTime() <= now) d.setDate(d.getDate() + 1);
   return d.getTime();
 }
