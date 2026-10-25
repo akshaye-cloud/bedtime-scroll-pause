@@ -23,13 +23,15 @@ function Session() {
 
   useEffect(() => {
     setS(syncActiveToSleepTime()); setNow(Date.now()); setLoaded(true);
-    const id = setInterval(() => setNow(Date.now()), 1000);
     const resync = () => setS(syncActiveToSleepTime());
+    const id = setInterval(() => { setNow(Date.now()); resync(); }, 1000);
     window.addEventListener("storage", resync);
+    window.addEventListener("pause:active-changed", resync);
     document.addEventListener("visibilitychange", resync);
     return () => {
       clearInterval(id);
       window.removeEventListener("storage", resync);
+      window.removeEventListener("pause:active-changed", resync);
       document.removeEventListener("visibilitychange", resync);
     };
   }, []);
