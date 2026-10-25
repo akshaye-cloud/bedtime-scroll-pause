@@ -28,12 +28,12 @@ function Account() {
 export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-night">
-      <header className="mx-auto flex max-w-xl items-center justify-between gap-2 px-4 pt-6 sm:px-6">
+      <header className="mx-auto flex max-w-xl items-center justify-between gap-2 px-3 pt-6 sm:px-6">
         <Link to="/home" className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           <PauseMark size={26} className="shrink-0 text-primary" />
           <span className="font-display text-xl text-foreground sm:text-2xl">Pause</span>
         </Link>
-        <nav className="flex min-w-0 gap-2.5 text-sm sm:gap-5 sm:text-base">
+        <nav className="flex min-w-0 gap-2 text-sm sm:gap-5 sm:text-base">
           <Link to="/home" className="nav-link">Home</Link>
           <Link to="/session" className="nav-link">Session</Link>
           <Link to="/progress" className="nav-link">Progress</Link>
