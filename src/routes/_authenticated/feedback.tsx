@@ -185,6 +185,46 @@ function Feedback() {
           </PrimaryButton>
         </form>
       )}
+
+      <section className="mt-10" aria-label="Your submitted feedback">
+        <h2 className="font-display text-2xl">Submitted feedback</h2>
+        {records === null ? (
+          <p className="mt-3 text-muted-foreground">Loading your feedback…</p>
+        ) : loadError ? (
+          <div className="panel mt-3" role="alert">
+            <p className="text-destructive">{loadError}</p>
+            <button className="link-btn mt-2" onClick={() => void loadRecords()}>
+              Try again
+            </button>
+          </div>
+        ) : records.length === 0 ? (
+          <div className="panel mt-3" role="status">
+            <p className="text-muted-foreground">No records. Your submitted feedback will appear here.</p>
+          </div>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-3">
+            {records.map((r) => (
+              <li key={r.id} className="panel">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex gap-1" aria-label={`${r.rating} star${r.rating > 1 ? "s" : ""} rating`}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        size={18}
+                        className={n <= r.rating ? "fill-primary text-primary" : "text-muted-foreground"}
+                      />
+                    ))}
+                  </div>
+                  <time dateTime={r.created_at} className="text-sm text-muted-foreground">
+                    {fmtDate(new Date(r.created_at).getTime())}
+                  </time>
+                </div>
+                <p className="mt-2 whitespace-pre-wrap break-words text-foreground">{r.comment}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </Shell>
   );
 }
