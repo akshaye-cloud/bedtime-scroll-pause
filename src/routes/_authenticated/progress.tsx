@@ -127,7 +127,7 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t border-border">
-                  <td className="p-3">{new Date(r.sleepAt).getDate()} {MONTHS[month].slice(0, 3)}</td>
+                  <td className="p-3">{new Date(r.sleepAt).getDate()} {MONTHS[month]?.slice(0, 3)}</td>
                   <td className="p-3">{fmtTime(r.sleepAt)}</td>
                   <td className="p-3">{fmtTime(r.endedAt)}</td>
                   <td className="p-3">{outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}</td>
