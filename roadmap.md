@@ -11,3 +11,7 @@
 # Daily sleep-time lock
 - [x] Lock the saved sleep time for the rest of the day, per account (demo1 exempt for testing).
 - [x] Browser-verify locked state on a demo account and exemption on demo1.
+
+# Home date line
+- [x] Show today's full date (e.g. Sunday, 25 October 2026) above the sleep time, rolling to the next date each day.
+- [x] Test the date format and the rollover to the following day.
