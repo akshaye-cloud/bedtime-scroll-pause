@@ -84,6 +84,9 @@ function Home() {
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
           {!locked && <button onClick={save} className="link-btn">Save time</button>}
         </div>
+        {!locked && !lockExempt && (
+          <p className="mt-3 text-base text-muted-foreground">Note: once saved, your sleep time cannot be changed for the rest of the day.</p>
+        )}
         {locked && (
           <p role="status" className="mt-3 text-base" style={{ color: "var(--warn)" }}>
             Locked for today: your sleep time stays at {fmtTime(nextOccurrence(time, Date.now()))} until tomorrow.
