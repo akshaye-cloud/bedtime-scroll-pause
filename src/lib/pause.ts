@@ -43,6 +43,13 @@ export function createSession(hhmm: string, now: number): ActiveSession {
   return { startedAt: now, lastActivityAt: now, sleepAt, promptAt, extensions: 0 };
 }
 
+export const ACTIVE_LIMIT_MIN = 2 * 60;
+
+/** Stop is disabled once the session has been running for more than 2 hours. */
+export function sessionActiveTooLong(s: ActiveSession, now: number): boolean {
+  return now - s.startedAt > ACTIVE_LIMIT_MIN * 60000;
+}
+
 export function shouldAutoStop(s: ActiveSession, now: number): boolean {
   return now >= s.sleepAt && now - (s.lastActivityAt ?? s.startedAt) >= INACTIVITY_MIN * 60000;
 }
