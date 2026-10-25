@@ -31,6 +31,27 @@ describe("progress per day", () => {
   });
 });
 
+describe("daily sleep-time lock", () => {
+  it("locks the saved time for the rest of the day", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    expect(getSleepLock("user-a", now)).toBeNull();
+    setSleepLock("user-a", "23:00", now);
+    expect(getSleepLock("user-a", now)).toBe("23:00");
+    expect(getSleepLock("user-a", now + 3 * 60 * min)).toBe("23:00"); // later same day still locked
+  });
+  it("unlocks the next day", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    setSleepLock("user-b", "23:00", now);
+    const tomorrow = new Date(2026, 9, 26, 8, 0).getTime();
+    expect(getSleepLock("user-b", tomorrow)).toBeNull();
+  });
+  it("locks are per account", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    setSleepLock("user-c", "22:30", now);
+    expect(getSleepLock("user-d", now)).toBeNull();
+  });
+});
+
 describe("pause rules", () => {
   it("never auto-stops before sleep time despite inactivity", () => {
     expect(shouldAutoStop(createSession("23:00", base), base + 60 * min - 1)).toBe(false);
