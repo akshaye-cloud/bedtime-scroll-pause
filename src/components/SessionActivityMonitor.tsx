@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { pendingResume, stopInactiveSession, store } from "@/lib/pause";
+import { syncShortcut } from "@/lib/shortcut";
 
 export function SessionActivityMonitor() {
   const navigate = useNavigate();
@@ -19,6 +20,15 @@ export function SessionActivityMonitor() {
       if (document.visibilityState === "visible" && window.location.pathname !== "/continue" && pendingResume()) void navigate({ to: "/continue" });
     };
     const onVisible = () => { check(); reopen(); };
+    // Keep the lock-screen notification in step with session changes (start, snooze, stop).
+    let lastKey = "";
+    const shortcut = () => {
+      const s = store.getActive();
+      const key = s ? `${s.promptAt}-${s.sleepAt}` : "";
+      if (key !== lastKey) { lastKey = key; void syncShortcut(); }
+    };
+    shortcut();
+    window.addEventListener("pause:active-changed", shortcut);
     check();
     reopen();
     const timer = window.setInterval(check, 1000);
@@ -28,6 +38,7 @@ export function SessionActivityMonitor() {
     window.addEventListener("storage", check);
     return () => {
       window.clearInterval(timer);
+      window.removeEventListener("pause:active-changed", shortcut);
       document.removeEventListener("pointerdown", activity, true);
       document.removeEventListener("keydown", activity, true);
       document.removeEventListener("visibilitychange", onVisible);

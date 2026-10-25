@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
 import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
+import { ShortcutPanel } from "@/components/ShortcutPanel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -82,6 +83,7 @@ function Home() {
           <p className="mt-3 text-center text-muted-foreground">Your alarm will ring 1 hour before, at {fmtTime(target - 3600000)}. Keep this page open.</p>
         )
       )}
+      <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
     </Shell>
   );
