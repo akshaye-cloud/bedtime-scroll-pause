@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shell, PrimaryButton } from "@/components/Shell";
-import { finish, fmtTime, sessionActiveTooLong, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
+import { Shell } from "@/components/Shell";
+import { fmtTime, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
 
 export const Route = createFileRoute("/_authenticated/session")({
   head: () => ({
@@ -42,13 +42,6 @@ function Session() {
     if (s && store.getActive() && now >= s.promptAt) nav({ to: "/prompt" });
   }, [s, now, nav]);
 
-  const stopNow = () => {
-    const active = store.getActive();
-    if (!active) return;
-    store.addRecord(finish(active, Date.now()));
-    store.setActive(null);
-    nav({ to: "/progress" });
-  };
 
   if (!loaded) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
 
@@ -65,7 +58,6 @@ function Session() {
   const left = Math.max(0, s.promptAt - now);
   const h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000), sec = Math.floor((left % 60000) / 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
-  const stopDisabled = sessionActiveTooLong(s, now);
 
   return (
     <Shell>
@@ -75,19 +67,7 @@ function Session() {
         until your {s.extensions ? "next" : "1-hour"} alarm at {fmtTime(s.promptAt)}
         {s.extensions > 0 && ` (snoozed ${s.extensions}×)`}
       </p>
-      {stopDisabled ? (
-        <>
-          <div className="btn-primary mt-12 w-full cursor-not-allowed text-center opacity-50" aria-disabled="true">I'm stopping now</div>
-          <p className="mt-4 text-center text-sm text-(--warn)">
-            This session has been running for more than 2 hours, so it can no longer be stopped manually. Start a fresh session from Home.
-          </p>
-        </>
-      ) : (
-        <>
-          <PrimaryButton className="mt-12 w-full" onClick={stopNow}>I'm stopping now</PrimaryButton>
-          <p className="mt-4 text-center text-sm text-muted-foreground">Keep this page open so the stopping screen can appear.</p>
-        </>
-      )}
+      <p className="mt-12 text-center text-sm text-muted-foreground">Keep this page open so the alarm screen can appear.</p>
     </Shell>
   );
 }
