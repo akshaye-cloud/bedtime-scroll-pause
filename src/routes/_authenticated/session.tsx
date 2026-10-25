@@ -65,6 +65,7 @@ function Session() {
   const left = Math.max(0, s.promptAt - now);
   const h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000), sec = Math.floor((left % 60000) / 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
+  const stopDisabled = sessionActiveTooLong(s, now);
 
   return (
     <Shell>
