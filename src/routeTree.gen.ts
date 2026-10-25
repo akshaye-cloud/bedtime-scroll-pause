@@ -10,73 +10,93 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ContinueRouteImport } from './routes/continue'
-import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as PromptRouteImport } from './routes/prompt'
-import { Route as SessionRouteImport } from './routes/session'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedContinueRouteImport } from './routes/_authenticated/continue'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedPromptRouteImport } from './routes/_authenticated/prompt'
+import { Route as AuthenticatedSessionRouteImport } from './routes/_authenticated/session'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContinueRoute = ContinueRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedContinueRoute = AuthenticatedContinueRouteImport.update({
   id: '/continue',
   path: '/continue',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProgressRoute = ProgressRouteImport.update({
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const PromptRoute = PromptRouteImport.update({
+const AuthenticatedPromptRoute = AuthenticatedPromptRouteImport.update({
   id: '/prompt',
   path: '/prompt',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SessionRoute = SessionRouteImport.update({
+const AuthenticatedSessionRoute = AuthenticatedSessionRouteImport.update({
   id: '/session',
   path: '/session',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/continue': typeof AuthenticatedContinueRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/prompt': typeof AuthenticatedPromptRoute
+  '/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/continue': typeof AuthenticatedContinueRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/prompt': typeof AuthenticatedPromptRoute
+  '/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/continue': typeof AuthenticatedContinueRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/prompt': typeof AuthenticatedPromptRoute
+  '/_authenticated/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/continue' | '/progress' | '/prompt' | '/session'
+  fullPaths: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/continue' | '/progress' | '/prompt' | '/session'
-  id: '__root__' | '/' | '/continue' | '/progress' | '/prompt' | '/session'
+  to: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/_authenticated/continue'
+    | '/_authenticated/home'
+    | '/_authenticated/progress'
+    | '/_authenticated/prompt'
+    | '/_authenticated/session'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ContinueRoute: typeof ContinueRoute
-  ProgressRoute: typeof ProgressRoute
-  PromptRoute: typeof PromptRoute
-  SessionRoute: typeof SessionRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -88,43 +108,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/continue': {
-      id: '/continue'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/continue': {
+      id: '/_authenticated/continue'
       path: '/continue'
       fullPath: '/continue'
-      preLoaderRoute: typeof ContinueRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedContinueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/progress': {
-      id: '/progress'
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
       path: '/progress'
       fullPath: '/progress'
-      preLoaderRoute: typeof ProgressRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/prompt': {
-      id: '/prompt'
+    '/_authenticated/prompt': {
+      id: '/_authenticated/prompt'
       path: '/prompt'
       fullPath: '/prompt'
-      preLoaderRoute: typeof PromptRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedPromptRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/session': {
-      id: '/session'
+    '/_authenticated/session': {
+      id: '/_authenticated/session'
       path: '/session'
       fullPath: '/session'
-      preLoaderRoute: typeof SessionRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSessionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedContinueRoute: typeof AuthenticatedContinueRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedPromptRoute: typeof AuthenticatedPromptRoute
+  AuthenticatedSessionRoute: typeof AuthenticatedSessionRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedContinueRoute: AuthenticatedContinueRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedPromptRoute: AuthenticatedPromptRoute,
+  AuthenticatedSessionRoute: AuthenticatedSessionRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ContinueRoute: ContinueRoute,
-  ProgressRoute: ProgressRoute,
-  PromptRoute: PromptRoute,
-  SessionRoute: SessionRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
