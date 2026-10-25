@@ -4,7 +4,7 @@ export interface ActiveSession {
   startedAt: number;
   sleepAt: number; // original target
   promptAt: number; // when the next alarm fires
-  promptShownAt?: number; // persisted start of the unanswered window
+  promptShownAt?: number | undefined; // persisted start of the unanswered window
   extensions: number;
 }
 
