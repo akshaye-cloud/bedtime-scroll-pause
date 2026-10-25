@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Volume2 } from "lucide-react";
 import { PrimaryButton, GhostButton } from "@/components/Shell";
-import { autoSnooze, extend, finish, fmtTime, showPrompt, store, type ActiveSession } from "@/lib/pause";
+import { autoSnooze, extend, finish, fmtTime, showPrompt, stopInactiveSession, store, type ActiveSession } from "@/lib/pause";
 import { startAlarm } from "@/lib/alarm";
 
 export const Route = createFileRoute("/prompt")({
@@ -27,6 +27,7 @@ function Prompt() {
   const silence = useRef<(() => void) | undefined>(undefined);
   useEffect(() => {
     const check = () => {
+      if (stopInactiveSession()) { nav({ to: "/progress" }); return; }
       const active = store.getActive();
       if (!active) { setS(null); setLoaded(true); return; }
       const now = Date.now();
@@ -66,16 +67,18 @@ function Prompt() {
   };
 
   const stop = () => {
-    if (!s) return;
+    const active = store.getActive();
+    if (!active) return;
     silence.current?.();
-    store.addRecord(finish(s, Date.now()));
+    store.addRecord(finish(active, Date.now()));
     store.setActive(null);
     nav({ to: "/progress" });
   };
   const snooze = () => {
-    if (!s) return;
+    const active = store.getActive();
+    if (!active) return;
     const now = Date.now();
-    const next = extend(s, now);
+    const next = extend(active, now);
     silence.current?.();
     store.setActive(next);
     nav({ to: "/session" });

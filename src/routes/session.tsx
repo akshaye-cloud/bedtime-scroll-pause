@@ -39,12 +39,13 @@ function Session() {
   }, []);
 
   useEffect(() => {
-    if (s && now >= s.promptAt) nav({ to: "/prompt" });
+    if (s && store.getActive() && now >= s.promptAt) nav({ to: "/prompt" });
   }, [s, now, nav]);
 
   const stopNow = () => {
-    if (!s) return;
-    store.addRecord(finish(s, Date.now()));
+    const active = store.getActive();
+    if (!active) return;
+    store.addRecord(finish(active, Date.now()));
     store.setActive(null);
     nav({ to: "/progress" });
   };

@@ -52,6 +52,9 @@ function Progress() {
                 <div>
                   <p className="text-lg">{fmtDate(r.sleepAt)}</p>
                   <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped {fmtTime(r.endedAt)}</p>
+                  {r.endReason === "inactive_in_pause" && (
+                    <p className="mt-1 text-sm text-muted-foreground">Automatically ended: no taps or typing in Pause for 2 minutes after sleep time was reached. Activity in other apps is unknown.</p>
+                  )}
                 </div>
                 <span className={r.outcome === "continued" ? "chip-warn" : "chip-ok"}>
                   {outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}
