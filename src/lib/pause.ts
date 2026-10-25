@@ -84,6 +84,10 @@ function read<T>(key: string, fallback: T): T {
 function write(key: string, v: unknown) {
   if (v === null) localStorage.removeItem(key);
   else localStorage.setItem(key, JSON.stringify(v));
+  // Same-tab listeners: "storage" events only fire in other tabs.
+  if (typeof window !== "undefined" && key === K.active) {
+    window.dispatchEvent(new CustomEvent("pause:active-changed"));
+  }
 }
 
 export const store = {
