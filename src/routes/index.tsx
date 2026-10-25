@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { Eye, EyeOff } from "lucide-react";
 import { PauseMark } from "@/components/PauseMark";
 
 export const Route = createFileRoute("/")({
@@ -30,6 +31,7 @@ function Welcome() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => { if (data.user) void nav({ to: "/home", replace: true }); });
@@ -65,18 +67,37 @@ function Welcome() {
     nav({ to: "/home" });
   };
 
-  const field = (key: "name" | "email" | "password", label: string, type: string, auto: string) => (
-    <div className="mt-5">
-      <label htmlFor={key} className="text-base font-semibold text-foreground">{label} <span aria-hidden className="text-primary">*</span></label>
-      <input
-        id={key} type={type} required autoComplete={auto} value={form[key]}
-        aria-invalid={!!errors[key]}
-        onChange={(e) => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: undefined }); }}
-        className="field-input mt-2"
-      />
-      {errors[key] && <p role="alert" className="mt-1 text-destructive">{errors[key]}</p>}
-    </div>
-  );
+  const field = (key: "name" | "email" | "password", label: string, type: string, auto: string) => {
+    const isPw = key === "password";
+    return (
+      <div className="mt-5">
+        <label htmlFor={key} className="text-base font-semibold text-foreground">{label} <span aria-hidden className="text-primary">*</span></label>
+        <div className="relative">
+          <input
+            id={key} type={isPw && showPw ? "text" : type} required autoComplete={auto} value={form[key]}
+            aria-invalid={!!errors[key]}
+            onChange={(e) => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: undefined }); }}
+            className="field-input mt-2"
+            style={isPw ? { paddingRight: "3.5rem" } : undefined}
+          />
+          {isPw && (
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-pressed={showPw}
+              aria-controls="password"
+              aria-label={showPw ? "Hide password" : "Show password"}
+              title={showPw ? "Hide password" : "Show password"}
+              className="field-toggle"
+            >
+              {showPw ? <EyeOff size={20} aria-hidden /> : <Eye size={20} aria-hidden />}
+            </button>
+          )}
+        </div>
+        {errors[key] && <p role="alert" className="mt-1 text-destructive">{errors[key]}</p>}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-night">
