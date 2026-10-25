@@ -65,6 +65,12 @@ describe("pause rules", () => {
     expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
     expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
   });
+  it("the session page offers Stop only after the prompt was extended", () => {
+    expect(sessionShowsStop(createSession("23:00", base))).toBe(false);
+    expect(sessionShowsStop(extend(createSession("23:00", base)))).toBe(true);
+    const snoozed = autoSnooze(showPrompt(createSession("23:00", base), base), base + 2 * min);
+    expect(snoozed && sessionShowsStop(snoozed)).toBe(true);
+  });
   it("disables Stop once the session runs for more than 2 hours", () => {
     const s = createSession("23:00", base);
     expect(sessionActiveTooLong(s, base + 120 * min)).toBe(false);
