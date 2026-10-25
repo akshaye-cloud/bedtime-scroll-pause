@@ -5,7 +5,7 @@ import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/p
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
     meta: [
       { title: "Pause — Set your stopping time" },

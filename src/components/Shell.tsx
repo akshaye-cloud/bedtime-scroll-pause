@@ -6,12 +6,12 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-night">
       <header className="mx-auto flex max-w-xl items-center justify-between px-6 pt-6">
-        <Link to="/" className="flex items-center gap-2.5">
+        <Link to="/home" className="flex items-center gap-2.5">
           <PauseMark size={30} className="text-primary" />
           <span className="font-display text-2xl text-foreground">Pause</span>
         </Link>
         <nav className="flex gap-5 text-base">
-          <Link to="/" className="nav-link" activeOptions={{ exact: true }}>Home</Link>
+          <Link to="/home" className="nav-link">Home</Link>
           <Link to="/session" className="nav-link">Session</Link>
           <Link to="/progress" className="nav-link">Progress</Link>
         </nav>

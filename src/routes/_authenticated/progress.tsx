@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { fmtDate, fmtTime, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
 
-export const Route = createFileRoute("/progress")({
+export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
     meta: [
       { title: "Pause — Your progress" },
@@ -35,7 +35,7 @@ function Progress() {
         <div className="panel mt-8 text-center">
           <p className="text-lg">No sessions recorded yet.</p>
           <p className="mt-2 text-muted-foreground">Finish a session and it will appear here.</p>
-          <Link to="/" className="btn-primary mt-6 inline-block">Start a session</Link>
+          <Link to="/home" className="btn-primary mt-6 inline-block">Start a session</Link>
         </div>
       ) : (
         <>
@@ -62,7 +62,7 @@ function Progress() {
               </li>
             ))}
           </ul>
-          <Link to="/" className="btn-primary mt-10 block text-center">Start tonight's session</Link>
+          <Link to="/home" className="btn-primary mt-10 block text-center">Start tonight's session</Link>
           <button onClick={clear} className="link-btn mt-6 block w-full text-center">Clear all records</button>
         </>
       )}

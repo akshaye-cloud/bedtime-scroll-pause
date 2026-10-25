@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { PrimaryButton, GhostButton } from "@/components/Shell";
 import { fmtTime, pendingResume, resumeFromRecord, store, type SessionRecord } from "@/lib/pause";
 
-export const Route = createFileRoute("/continue")({
+export const Route = createFileRoute("/_authenticated/continue")({
   head: () => ({
     meta: [
       { title: "Pause — Still want to continue?" },
@@ -35,7 +35,7 @@ function Continue() {
       {!loaded ? null : !state ? (
         <div>
           <h1 className="font-display text-3xl">Nothing to continue</h1>
-          <Link to="/" className="btn-primary mt-8 inline-block">Go to Home</Link>
+          <Link to="/home" className="btn-primary mt-8 inline-block">Go to Home</Link>
         </div>
       ) : (
         <div className="w-full max-w-md">

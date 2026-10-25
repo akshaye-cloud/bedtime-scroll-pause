@@ -5,7 +5,7 @@ import { PrimaryButton, GhostButton } from "@/components/Shell";
 import { autoSnooze, extend, finish, fmtTime, showPrompt, stopInactiveSession, store, type ActiveSession } from "@/lib/pause";
 import { startAlarm } from "@/lib/alarm";
 
-export const Route = createFileRoute("/prompt")({
+export const Route = createFileRoute("/_authenticated/prompt")({
   head: () => ({
     meta: [
       { title: "Pause — Time to stop" },
@@ -89,7 +89,7 @@ function Prompt() {
       {!loaded ? null : !s ? (
         <div>
           <h1 className="font-display text-3xl">No session to stop</h1>
-          <Link to="/" className="btn-primary mt-8 inline-block">Go to Home</Link>
+          <Link to="/home" className="btn-primary mt-8 inline-block">Go to Home</Link>
         </div>
       ) : (
         <div className="w-full max-w-md">

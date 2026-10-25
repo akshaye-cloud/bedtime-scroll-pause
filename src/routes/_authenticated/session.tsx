@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
 import { finish, fmtTime, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
 
-export const Route = createFileRoute("/session")({
+export const Route = createFileRoute("/_authenticated/session")({
   head: () => ({
     meta: [
       { title: "Pause — Active session" },
@@ -57,7 +57,7 @@ function Session() {
       <Shell>
         <h1 className="font-display text-3xl">No active session</h1>
         <p className="mt-3 text-lg text-muted-foreground">Set your sleep time and start a session from Home.</p>
-        <Link to="/" className="btn-primary mt-8 block w-full text-center">Go to Home</Link>
+        <Link to="/home" className="btn-primary mt-8 block w-full text-center">Go to Home</Link>
       </Shell>
     );
   }
