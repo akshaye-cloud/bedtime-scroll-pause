@@ -36,10 +36,10 @@ export function RecordSync() {
     const onAdded = (e: Event) => {
       const r = (e as CustomEvent<SessionRecord>).detail;
       if (!userId || !r) return;
-      void supabase.from("session_records").upsert({ id: r.id, user_id: userId, data: r as never, ended_at: new Date(r.endedAt).toISOString() });
+      void supabase.from("session_records").upsert({ id: r.id, user_id: userId, data: r as never, ended_at: new Date(r.endedAt).toISOString() }).then(() => undefined);
     };
     const onCleared = () => {
-      if (userId) void supabase.from("session_records").delete().eq("user_id", userId);
+      if (userId) void supabase.from("session_records").delete().eq("user_id", userId).then(() => undefined);
     };
 
     void supabase.auth.getUser().then(({ data }) => { if (data.user) void load(data.user.id); });
