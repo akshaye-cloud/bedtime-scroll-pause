@@ -47,7 +47,14 @@ function Welcome() {
     setBusy(true);
     const { name, email, password } = parsed.data;
     const signIn = await supabase.auth.signInWithPassword({ email, password });
-    if (!signIn.error) { setBusy(false); return nav({ to: "/home" }); }
+    if (!signIn.error) {
+      // Shared accounts start without a name: save the one entered here.
+      const uid = signIn.data.user.id;
+      const { data: p } = await supabase.from("profiles").select("name").eq("id", uid).maybeSingle();
+      if (!p?.name) await supabase.from("profiles").upsert({ id: uid, name });
+      setBusy(false);
+      return nav({ to: "/home" });
+    }
     const signUp = await supabase.auth.signUp({ email, password, options: { data: { name }, emailRedirectTo: window.location.origin } });
     setBusy(false);
     if (signUp.error) {
