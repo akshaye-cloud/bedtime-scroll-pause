@@ -29,6 +29,13 @@ const feedbackSchema = z.object({
     .max(2000, "Please keep it under 2000 characters."),
 });
 
+type FeedbackRow = {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+};
+
 function Feedback() {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -36,6 +43,27 @@ function Feedback() {
   const [errors, setErrors] = useState<{ rating?: string | undefined; comment?: string | undefined }>({});
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [records, setRecords] = useState<FeedbackRow[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadRecords = useCallback(async () => {
+    setLoadError(null);
+    const { data, error } = await supabase
+      .from("feedback")
+      .select("id, rating, comment, created_at")
+      .order("created_at", { ascending: false });
+    if (error) {
+      setLoadError("Could not load your feedback records. Please try again.");
+      setRecords([]);
+      return;
+    }
+    setRecords(data ?? []);
+  }, []);
+
+  useEffect(() => {
+    void loadRecords();
+  }, [loadRecords]);
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
