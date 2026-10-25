@@ -85,7 +85,12 @@ function Welcome() {
           <PauseMark size={34} className="text-primary" />
           <span className="font-display text-3xl text-foreground">Pause</span>
         </div>
-        <h1 className="mt-8 font-display text-4xl leading-tight">Welcome</h1>
+        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+          Pause is a bedtime scrolling assistant. You set the time you want to stop, Pause sounds a gentle alarm an hour
+          before it, and then keeps an honest record of whether you stopped or kept going.
+        </p>
+        <h1 className="mt-7 font-display text-4xl leading-tight">Welcome</h1>
+
         <p className="mt-3 text-lg text-muted-foreground">Enter your details to continue. New here? An account is created for you.</p>
         <form onSubmit={submit} noValidate className="panel mt-8">
           {field("name", "Name", "text", "name")}
