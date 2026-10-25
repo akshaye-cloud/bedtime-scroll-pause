@@ -49,7 +49,12 @@ export function showPrompt(s: ActiveSession, now: number): ActiveSession {
 
 export function autoSnooze(s: ActiveSession, now: number): ActiveSession | null {
   if (s.promptShownAt === undefined || now < s.promptShownAt + RESPONSE_MIN * 60000) return null;
-  return extend(s, s.promptShownAt + RESPONSE_MIN * 60000 - (EXTENSION_MIN - AUTO_SNOOZE_MIN) * 60000);
+  return {
+    ...s,
+    promptShownAt: undefined,
+    extensions: s.extensions + 1,
+    promptAt: s.promptShownAt + (RESPONSE_MIN + AUTO_SNOOZE_MIN) * 60000,
+  };
 }
 
 /** Re-point an active session at a changed sleep time, keeping any snoozes. */
