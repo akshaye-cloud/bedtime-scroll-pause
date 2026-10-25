@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtTime, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
+import { fmtTime, finish, sessionActiveTooLong, sessionShowsStop, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
 
 export const Route = createFileRoute("/_authenticated/session")({
   head: () => ({
@@ -41,6 +41,15 @@ function Session() {
   useEffect(() => {
     if (s && store.getActive() && now >= s.promptAt) nav({ to: "/prompt" });
   }, [s, now, nav]);
+
+  const stopNow = () => {
+    const active = store.getActive();
+    if (!active) return;
+    store.addRecord(finish(active, Date.now()));
+    store.setActive(null);
+    nav({ to: "/progress" });
+  };
+
 
 
   if (!loaded) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
