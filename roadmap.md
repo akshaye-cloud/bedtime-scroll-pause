@@ -4,6 +4,6 @@
 - [x] Test timing rules and verify the complete repeating alarm flow.
 
 # Inactivity auto-stop
-- [ ] Track taps and typing within Pause without resetting inactivity on refresh.
-- [ ] Stop and save after sleep time and two inactive minutes, with a clear recorded reason.
-- [ ] Test timing boundaries and verify activity, automatic stop, and saved results.
+- [x] Track taps and typing within Pause without resetting inactivity on refresh.
+- [x] Stop and save after sleep time and two inactive minutes, with a clear recorded reason.
+- [x] Test timing boundaries and verify activity, automatic stop, and saved results.
