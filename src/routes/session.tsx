@@ -10,6 +10,8 @@ export const Route = createFileRoute("/session")({
       { name: "description", content: "Your pre-bedtime session countdown." },
       { property: "og:title", content: "Pause — Active session" },
       { property: "og:description", content: "Countdown to your intended stopping time." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Session,

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
 import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/pause";
+import { prepareAlarmAudio } from "@/lib/alarm";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -10,6 +11,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Set the time you intend to put your phone down tonight." },
       { property: "og:title", content: "Pause — Bedtime Scrolling Assistant" },
       { property: "og:description", content: "Record and follow your intended bedtime stopping time." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
@@ -37,6 +40,7 @@ function Home() {
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
+    void prepareAlarmAudio();
     store.setSleepTime(time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
@@ -65,7 +69,7 @@ function Home() {
       </div>
 
       {hasActive ? (
-        <PrimaryButton className="mt-8 w-full" onClick={() => nav({ to: "/session" })}>Return to active session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
       ) : (
         <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid}>Start pre-bedtime session</PrimaryButton>
       )}

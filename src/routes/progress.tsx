@@ -10,6 +10,8 @@ export const Route = createFileRoute("/progress")({
       { name: "description", content: "Review your recorded bedtime sessions." },
       { property: "og:title", content: "Pause — Your progress" },
       { property: "og:description", content: "Review your recorded bedtime sessions." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Progress,
