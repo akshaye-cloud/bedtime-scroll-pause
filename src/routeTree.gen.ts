@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContinueRouteImport } from './routes/continue'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as PromptRouteImport } from './routes/prompt'
 import { Route as SessionRouteImport } from './routes/session'
@@ -17,6 +18,11 @@ import { Route as SessionRouteImport } from './routes/session'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContinueRoute = ContinueRouteImport.update({
+  id: '/continue',
+  path: '/continue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgressRoute = ProgressRouteImport.update({
@@ -37,12 +43,14 @@ const SessionRoute = SessionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/continue': typeof ContinueRoute
   '/progress': typeof ProgressRoute
   '/prompt': typeof PromptRoute
   '/session': typeof SessionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/continue': typeof ContinueRoute
   '/progress': typeof ProgressRoute
   '/prompt': typeof PromptRoute
   '/session': typeof SessionRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/continue': typeof ContinueRoute
   '/progress': typeof ProgressRoute
   '/prompt': typeof PromptRoute
   '/session': typeof SessionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/progress' | '/prompt' | '/session'
+  fullPaths: '/' | '/continue' | '/progress' | '/prompt' | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/progress' | '/prompt' | '/session'
-  id: '__root__' | '/' | '/progress' | '/prompt' | '/session'
+  to: '/' | '/continue' | '/progress' | '/prompt' | '/session'
+  id: '__root__' | '/' | '/continue' | '/progress' | '/prompt' | '/session'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContinueRoute: typeof ContinueRoute
   ProgressRoute: typeof ProgressRoute
   PromptRoute: typeof PromptRoute
   SessionRoute: typeof SessionRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/continue': {
+      id: '/continue'
+      path: '/continue'
+      fullPath: '/continue'
+      preLoaderRoute: typeof ContinueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/progress': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContinueRoute: ContinueRoute,
   ProgressRoute: ProgressRoute,
   PromptRoute: PromptRoute,
   SessionRoute: SessionRoute,

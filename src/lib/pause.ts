@@ -25,7 +25,8 @@ export const WARN_MIN = 60;
 export const RESPONSE_MIN = 2;
 export const AUTO_SNOOZE_MIN = 8;
 export const INACTIVITY_MIN = 2;
-const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records" };
+const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records", resume: "pause.resume" };
+export const RESUME_WINDOW_MIN = 6 * 60;
 
 /** Next occurrence of HH:MM after `now`. */
 export function nextOccurrence(hhmm: string, now: number): number {
@@ -128,9 +129,17 @@ export const store = {
   getSleepTime: () => read<string | null>(K.time, null),
   setSleepTime: (t: string) => write(K.time, t),
   getActive: () => read<ActiveSession | null>(K.active, null),
-  setActive: (s: ActiveSession | null) => write(K.active, s),
+  setActive: (s: ActiveSession | null) => {
+    if (s) write(K.resume, null);
+    write(K.active, s);
+  },
   getRecords: () => read<SessionRecord[]>(K.records, []),
-  addRecord: (r: SessionRecord) => write(K.records, [r, ...read<SessionRecord[]>(K.records, []).filter((existing) => existing.id !== r.id)]),
+  addRecord: (r: SessionRecord) => {
+    write(K.records, [r, ...read<SessionRecord[]>(K.records, []).filter((existing) => existing.id !== r.id)]);
+    write(K.resume, r.id);
+  },
+  getResume: () => read<string | null>(K.resume, null),
+  clearResume: () => write(K.resume, null),
   clearRecords: () => write(K.records, null),
 };
 
@@ -159,3 +168,22 @@ export const outcomeLabel: Record<Outcome, string> = {
   stopped_on_time: "Stopped on time",
   continued: "Continued past time",
 };
+
+/** Which "continue?" prompt to show when Pause is reopened after a session ended. */
+export function continueVariant(r: SessionRecord, now: number): "before" | "after" | null {
+  if (now > r.sleepAt + RESUME_WINDOW_MIN * 60000) return null;
+  return now < r.sleepAt ? "before" : "after";
+}
+
+/** "Yes" on the continue prompt: reopen the ended session with a 10-minute extension. */
+export function resumeFromRecord(r: SessionRecord, now: number): ActiveSession {
+  return { startedAt: r.startedAt, sleepAt: r.sleepAt, lastActivityAt: now, extensions: r.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
+}
+
+export function pendingResume(now = Date.now()): { record: SessionRecord; variant: "before" | "after" } | null {
+  const id = store.getResume();
+  if (!id || store.getActive()) return null;
+  const record = store.getRecords().find((r) => r.id === id);
+  const variant = record ? continueVariant(record, now) : null;
+  return record && variant ? { record, variant } : null;
+}
