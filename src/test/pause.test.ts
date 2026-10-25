@@ -112,3 +112,19 @@ describe("pause rules", () => {
     expect(summarize([a, b])).toMatchObject({ total: 2, onTime: 1, continued: 1, avgBeyond: 10, rate: 50 });
   });
 });
+
+import { continueVariant, resumeFromRecord } from "@/lib/pause";
+describe("continue prompt", () => {
+  const r = finish(createSession("23:00", base), base + 30 * min);
+  it("before sleep time asks to continue without the limit warning", () => {
+    expect(continueVariant(r, base + 40 * min)).toBe("before");
+  });
+  it("after sleep time shows the exceeded-limit prompt", () => {
+    expect(continueVariant(r, base + 61 * min)).toBe("after");
+  });
+  it("yes extends 10 minutes from now", () => {
+    const s = resumeFromRecord(r, base + 40 * min);
+    expect(s.promptAt).toBe(base + 50 * min);
+    expect(s.extensions).toBe(1);
+  });
+});
