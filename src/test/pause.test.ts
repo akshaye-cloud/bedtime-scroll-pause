@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, retarget, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -16,6 +16,12 @@ describe("pause rules", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
     expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
     expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
+  });
+  it("disables Stop once the session runs for more than 2 hours", () => {
+    const s = createSession("23:00", base);
+    expect(sessionActiveTooLong(s, base + 120 * min)).toBe(false);
+    expect(sessionActiveTooLong(s, base + 120 * min + 1)).toBe(true);
+    expect(sessionActiveTooLong(s, base + 121 * min)).toBe(true);
   });
   it("refresh preserves the inactivity deadline", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
