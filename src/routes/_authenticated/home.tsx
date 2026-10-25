@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/pause";
+import { createSession, fmtTime, nextOccurrence, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
