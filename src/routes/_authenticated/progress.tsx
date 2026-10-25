@@ -19,7 +19,12 @@ export const Route = createFileRoute("/_authenticated/progress")({
 
 function Progress() {
   const [records, setRecords] = useState<SessionRecord[] | null>(null);
-  useEffect(() => setRecords(store.getRecords()), []);
+  useEffect(() => {
+    const load = () => setRecords(store.getRecords());
+    load();
+    window.addEventListener("pause:records-synced", load);
+    return () => window.removeEventListener("pause:records-synced", load);
+  }, []);
 
   if (!records) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
   const s = summarize(records);
