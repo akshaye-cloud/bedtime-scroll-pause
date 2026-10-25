@@ -42,7 +42,12 @@ function Home() {
     nav({ to: "/session" });
   };
 
-  const target = valid ? nextOccurrence(time, Date.now()) : null;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(id);
+  }, []);
+  const target = valid ? nextOccurrence(time, now) : null;
 
   return (
     <Shell>
@@ -65,7 +70,13 @@ function Home() {
         <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid}>Start pre-bedtime session</PrimaryButton>
       )}
       {target && !hasActive && (
-        <p className="mt-3 text-center text-muted-foreground">Your alarm will ring 1 hour before, at {fmtTime(target - 3600000)}. Keep this page open.</p>
+        target - now <= 3600000 ? (
+          <p role="status" className="panel mt-3 text-center text-base">
+            <strong className="text-primary">Heads up:</strong> {fmtTime(target)} is less than 1 hour away, so your alarm will appear right after you start the session.
+          </p>
+        ) : (
+          <p className="mt-3 text-center text-muted-foreground">Your alarm will ring 1 hour before, at {fmtTime(target - 3600000)}. Keep this page open.</p>
+        )
       )}
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
     </Shell>
