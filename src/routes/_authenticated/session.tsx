@@ -78,7 +78,7 @@ function Session() {
       {stopDisabled ? (
         <>
           <div className="btn-primary mt-12 w-full cursor-not-allowed text-center opacity-50" aria-disabled="true">I'm stopping now</div>
-          <p className="mt-4 text-center text-sm text-warn-foreground">
+          <p className="mt-4 text-center text-sm text-(--warn)">
             This session has been running for more than 2 hours, so it can no longer be stopped manually. Start a fresh session from Home.
           </p>
         </>
