@@ -10,4 +10,4 @@
 
 # Daily sleep-time lock
 - [x] Lock the saved sleep time for the rest of the day, per account (demo1 exempt for testing).
-- [ ] Browser-verify locked state on a demo account and exemption on demo1.
+- [x] Browser-verify locked state on a demo account and exemption on demo1.
