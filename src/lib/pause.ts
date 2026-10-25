@@ -5,6 +5,7 @@ export interface ActiveSession {
   sleepAt: number; // original target
   promptAt: number; // when the next alarm fires
   promptShownAt?: number | undefined; // persisted start of the unanswered window
+  lastActivityAt?: number; // taps or typing inside Pause only
   extensions: number;
 }
 
@@ -16,12 +17,14 @@ export interface SessionRecord {
   extensions: number;
   minutesBeyond: number; // 0 if stopped at/before sleep time
   outcome: Outcome;
+  endReason?: "inactive_in_pause";
 }
 
 export const EXTENSION_MIN = 10;
 export const WARN_MIN = 60;
 export const RESPONSE_MIN = 2;
 export const AUTO_SNOOZE_MIN = 8;
+export const INACTIVITY_MIN = 2;
 const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records" };
 
 /** Next occurrence of HH:MM after `now`. */
@@ -36,7 +39,21 @@ export function nextOccurrence(hhmm: string, now: number): number {
 export function createSession(hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
   const promptAt = Math.max(now, sleepAt - WARN_MIN * 60000);
-  return { startedAt: now, sleepAt, promptAt, extensions: 0 };
+  return { startedAt: now, lastActivityAt: now, sleepAt, promptAt, extensions: 0 };
+}
+
+export function shouldAutoStop(s: ActiveSession, now: number): boolean {
+  return now >= s.sleepAt && now - (s.lastActivityAt ?? s.startedAt) >= INACTIVITY_MIN * 60000;
+}
+
+/** Shared by the page monitor and prompt so stopping takes priority over snoozing. */
+export function stopInactiveSession(now = Date.now()): SessionRecord | null {
+  const s = store.getActive();
+  if (!s || !shouldAutoStop(s, now)) return null;
+  const record: SessionRecord = { ...finish(s, now), endReason: "inactive_in_pause" };
+  store.addRecord(record);
+  store.setActive(null);
+  return record;
 }
 
 export function extend(s: ActiveSession, now = s.promptAt): ActiveSession {
@@ -113,7 +130,7 @@ export const store = {
   getActive: () => read<ActiveSession | null>(K.active, null),
   setActive: (s: ActiveSession | null) => write(K.active, s),
   getRecords: () => read<SessionRecord[]>(K.records, []),
-  addRecord: (r: SessionRecord) => write(K.records, [r, ...read<SessionRecord[]>(K.records, [])]),
+  addRecord: (r: SessionRecord) => write(K.records, [r, ...read<SessionRecord[]>(K.records, []).filter((existing) => existing.id !== r.id)]),
   clearRecords: () => write(K.records, null),
 };
 

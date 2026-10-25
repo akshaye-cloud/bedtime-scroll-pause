@@ -1,10 +1,37 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, retarget, showPrompt, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, retarget, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
 
 describe("pause rules", () => {
+  it("never auto-stops before sleep time despite inactivity", () => {
+    expect(shouldAutoStop(createSession("23:00", base), base + 60 * min - 1)).toBe(false);
+  });
+  it("auto-stops at sleep time when Pause has been inactive for 2 minutes", () => {
+    const s = { ...createSession("23:00", base), lastActivityAt: base + 58 * min };
+    expect(shouldAutoStop(s, base + 60 * min)).toBe(true);
+  });
+  it("recent input postpones stopping until exactly 2 inactive minutes", () => {
+    const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
+    expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
+    expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
+  });
+  it("refresh preserves the inactivity deadline", () => {
+    const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
+    const restored = JSON.parse(JSON.stringify(s));
+    expect(shouldAutoStop(restored, base + 61 * min)).toBe(true);
+  });
+  it("auto-stop clears a snoozed session and saves its reason only once", () => {
+    store.clearRecords();
+    store.setActive(extend(createSession("23:00", base), base + 59 * min));
+    const record = stopInactiveSession(base + 60 * min);
+    expect(record?.endReason).toBe("inactive_in_pause");
+    expect(store.getActive()).toBeNull();
+    expect(stopInactiveSession(base + 61 * min)).toBeNull();
+    expect(store.getRecords()).toHaveLength(1);
+    store.clearRecords();
+  });
   it("targets the next occurrence of the sleep time", () => {
     expect(nextOccurrence("23:00", base) - base).toBe(60 * min);
     expect(nextOccurrence("21:00", base) - base).toBe(23 * 60 * min);
