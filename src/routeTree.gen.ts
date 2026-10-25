@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedContinueRouteImport } from './routes/_authenticated/continue'
+import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedPromptRouteImport } from './routes/_authenticated/prompt'
@@ -29,6 +30,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedContinueRoute = AuthenticatedContinueRouteImport.update({
   id: '/continue',
   path: '/continue',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
@@ -55,6 +61,7 @@ const AuthenticatedSessionRoute = AuthenticatedSessionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/continue': typeof AuthenticatedContinueRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/home': typeof AuthenticatedHomeRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/prompt': typeof AuthenticatedPromptRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/continue': typeof AuthenticatedContinueRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/home': typeof AuthenticatedHomeRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/prompt': typeof AuthenticatedPromptRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/continue': typeof AuthenticatedContinueRoute
+  '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/prompt': typeof AuthenticatedPromptRoute
@@ -80,14 +89,29 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  fullPaths:
+    | '/'
+    | '/continue'
+    | '/feedback'
+    | '/home'
+    | '/progress'
+    | '/prompt'
+    | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  to:
+    | '/'
+    | '/continue'
+    | '/feedback'
+    | '/home'
+    | '/progress'
+    | '/prompt'
+    | '/session'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/continue'
+    | '/_authenticated/feedback'
     | '/_authenticated/home'
     | '/_authenticated/progress'
     | '/_authenticated/prompt'
@@ -120,6 +144,13 @@ declare module '@tanstack/react-router' {
       path: '/continue'
       fullPath: '/continue'
       preLoaderRoute: typeof AuthenticatedContinueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/feedback': {
+      id: '/_authenticated/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
@@ -155,6 +186,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedContinueRoute: typeof AuthenticatedContinueRoute
+  AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedPromptRoute: typeof AuthenticatedPromptRoute
@@ -163,6 +195,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContinueRoute: AuthenticatedContinueRoute,
+  AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedPromptRoute: AuthenticatedPromptRoute,
