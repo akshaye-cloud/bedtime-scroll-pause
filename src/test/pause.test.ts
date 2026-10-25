@@ -1,8 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, latestPerDay, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
+
+const rec = (id: string, sleepAt: number, outcome: SessionRecord["outcome"] = "stopped_early"): SessionRecord =>
+  ({ id, startedAt: sleepAt - 60 * min, sleepAt, endedAt: sleepAt - 30 * min, extensions: 0, minutesBeyond: 0, outcome });
+
+describe("progress per day", () => {
+  it("keeps only the latest record when several sessions end on the same day", () => {
+    const day1a = new Date(2026, 9, 25, 23, 0).getTime();
+    const day1b = new Date(2026, 9, 25, 23, 40).getTime();
+    const records = [rec("b", day1b, "continued"), rec("a", day1a)]; // newest first
+    const days = latestPerDay(records);
+    expect(days).toHaveLength(1);
+    expect(days[0]?.id).toBe("b");
+  });
+  it("shows the next day's session as its own entry", () => {
+    const day1 = new Date(2026, 9, 25, 23, 0).getTime();
+    const day2 = new Date(2026, 9, 26, 23, 0).getTime();
+    const days = latestPerDay([rec("2", day2), rec("1", day1)]);
+    expect(days.map((r) => r.id)).toEqual(["2", "1"]);
+  });
+  it("stats count each day once, not every attempt", () => {
+    const day1a = new Date(2026, 9, 25, 23, 0).getTime();
+    const day1b = new Date(2026, 9, 25, 23, 40).getTime();
+    const s = summarize(latestPerDay([rec("b", day1b, "continued"), rec("a", day1a)]));
+    expect(s.total).toBe(1);
+    expect(s.rate).toBe(0);
+  });
+});
 
 describe("pause rules", () => {
   it("never auto-stops before sleep time despite inactivity", () => {
