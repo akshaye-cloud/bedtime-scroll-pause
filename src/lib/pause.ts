@@ -3,7 +3,8 @@ export type Outcome = "stopped_early" | "stopped_on_time" | "continued";
 export interface ActiveSession {
   startedAt: number;
   sleepAt: number; // original target
-  promptAt: number; // when next prompt fires (sleepAt + extensions*5m)
+  promptAt: number; // when the next alarm fires
+  promptShownAt?: number | undefined; // persisted start of the unanswered window
   extensions: number;
 }
 
@@ -19,6 +20,8 @@ export interface SessionRecord {
 
 export const EXTENSION_MIN = 10;
 export const WARN_MIN = 60;
+export const RESPONSE_MIN = 2;
+export const AUTO_SNOOZE_MIN = 8;
 const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records" };
 
 /** Next occurrence of HH:MM after `now`. */
@@ -36,14 +39,28 @@ export function createSession(hhmm: string, now: number): ActiveSession {
   return { startedAt: now, sleepAt, promptAt, extensions: 0 };
 }
 
-export function extend(s: ActiveSession): ActiveSession {
-  return { ...s, extensions: s.extensions + 1, promptAt: s.promptAt + EXTENSION_MIN * 60000 };
+export function extend(s: ActiveSession, now = s.promptAt): ActiveSession {
+  return { ...s, promptShownAt: undefined, extensions: s.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
+}
+
+export function showPrompt(s: ActiveSession, now: number): ActiveSession {
+  return s.promptShownAt === undefined ? { ...s, promptShownAt: now } : s;
+}
+
+export function autoSnooze(s: ActiveSession, now: number): ActiveSession | null {
+  if (s.promptShownAt === undefined || now < s.promptShownAt + RESPONSE_MIN * 60000) return null;
+  return {
+    ...s,
+    promptShownAt: undefined,
+    extensions: s.extensions + 1,
+    promptAt: s.promptShownAt + (RESPONSE_MIN + AUTO_SNOOZE_MIN) * 60000,
+  };
 }
 
 /** Re-point an active session at a changed sleep time, keeping any snoozes. */
 export function retarget(s: ActiveSession, hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
-  return { ...s, sleepAt, promptAt: sleepAt - WARN_MIN * 60000 + s.extensions * EXTENSION_MIN * 60000 };
+  return { ...s, promptShownAt: undefined, sleepAt, promptAt: sleepAt - WARN_MIN * 60000 + s.extensions * EXTENSION_MIN * 60000 };
 }
 
 export function finish(s: ActiveSession, now: number): SessionRecord {
@@ -108,7 +125,9 @@ export function syncActiveToSleepTime(now = Date.now()): ActiveSession | null {
   const t = store.getSleepTime();
   const s = store.getActive();
   if (!t || !s) return s;
-  if (nextOccurrence(t, now) === s.sleepAt) return s;
+  const target = new Date(s.sleepAt);
+  const [hour, minute] = t.split(":").map(Number);
+  if (target.getHours() === hour && target.getMinutes() === minute) return s;
   const next = retarget(s, t, now);
   store.setActive(next);
   return next;
