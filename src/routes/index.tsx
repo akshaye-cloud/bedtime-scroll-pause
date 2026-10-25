@@ -67,12 +67,12 @@ function Welcome() {
 
   const field = (key: "name" | "email" | "password", label: string, type: string, auto: string) => (
     <div className="mt-5">
-      <label htmlFor={key} className="text-base text-muted-foreground">{label} <span aria-hidden className="text-primary">*</span></label>
+      <label htmlFor={key} className="text-base font-semibold text-foreground">{label} <span aria-hidden className="text-primary">*</span></label>
       <input
         id={key} type={type} required autoComplete={auto} value={form[key]}
         aria-invalid={!!errors[key]}
         onChange={(e) => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: undefined }); }}
-        className="time-input mt-2 text-lg"
+        className="field-input mt-2"
       />
       {errors[key] && <p role="alert" className="mt-1 text-destructive">{errors[key]}</p>}
     </div>
