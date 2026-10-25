@@ -96,6 +96,7 @@ function Feedback() {
       return;
     }
     setDone(true);
+    void loadRecords();
   };
 
   return (
