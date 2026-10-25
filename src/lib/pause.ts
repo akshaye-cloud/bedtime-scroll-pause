@@ -137,10 +137,16 @@ export const store = {
   addRecord: (r: SessionRecord) => {
     write(K.records, [r, ...read<SessionRecord[]>(K.records, []).filter((existing) => existing.id !== r.id)]);
     write(K.resume, r.id);
+    window.dispatchEvent(new CustomEvent("pause:record-added", { detail: r }));
   },
   getResume: () => read<string | null>(K.resume, null),
   clearResume: () => write(K.resume, null),
-  clearRecords: () => write(K.records, null),
+  clearRecords: () => {
+    write(K.records, null);
+    window.dispatchEvent(new CustomEvent("pause:records-cleared"));
+  },
+  /** Replace local records with the signed-in account's copy (no sync events). */
+  replaceRecords: (rs: SessionRecord[]) => write(K.records, rs.length ? rs : null),
 };
 
 /**

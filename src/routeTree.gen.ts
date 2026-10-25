@@ -9,122 +9,128 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ContinueRouteImport } from './routes/continue'
-import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as PromptRouteImport } from './routes/prompt'
-import { Route as SessionRouteImport } from './routes/session'
+import { Route as AuthenticatedContinueRouteImport } from './routes/_authenticated/continue'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedPromptRouteImport } from './routes/_authenticated/prompt'
+import { Route as AuthenticatedSessionRouteImport } from './routes/_authenticated/session'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContinueRoute = ContinueRouteImport.update({
-  id: '/continue',
+const AuthenticatedContinueRoute = AuthenticatedContinueRouteImport.update({
+  id: '/_authenticated/continue',
   path: '/continue',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProgressRoute = ProgressRouteImport.update({
-  id: '/progress',
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/_authenticated/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/_authenticated/progress',
   path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PromptRoute = PromptRouteImport.update({
-  id: '/prompt',
+const AuthenticatedPromptRoute = AuthenticatedPromptRouteImport.update({
+  id: '/_authenticated/prompt',
   path: '/prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SessionRoute = SessionRouteImport.update({
-  id: '/session',
+const AuthenticatedSessionRoute = AuthenticatedSessionRouteImport.update({
+  id: '/_authenticated/session',
   path: '/session',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/continue': typeof AuthenticatedContinueRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/prompt': typeof AuthenticatedPromptRoute
+  '/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/continue': typeof AuthenticatedContinueRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/progress': typeof AuthenticatedProgressRoute
+  '/prompt': typeof AuthenticatedPromptRoute
+  '/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/continue': typeof ContinueRoute
-  '/progress': typeof ProgressRoute
-  '/prompt': typeof PromptRoute
-  '/session': typeof SessionRoute
+  '/_authenticated/continue': typeof AuthenticatedContinueRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/prompt': typeof AuthenticatedPromptRoute
+  '/_authenticated/session': typeof AuthenticatedSessionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/continue' | '/progress' | '/prompt' | '/session'
+  fullPaths: '/continue' | '/home' | '/progress' | '/prompt' | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/continue' | '/progress' | '/prompt' | '/session'
-  id: '__root__' | '/' | '/continue' | '/progress' | '/prompt' | '/session'
+  to: '/continue' | '/home' | '/progress' | '/prompt' | '/session'
+  id:
+    | '__root__'
+    | '/_authenticated/continue'
+    | '/_authenticated/home'
+    | '/_authenticated/progress'
+    | '/_authenticated/prompt'
+    | '/_authenticated/session'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ContinueRoute: typeof ContinueRoute
-  ProgressRoute: typeof ProgressRoute
-  PromptRoute: typeof PromptRoute
-  SessionRoute: typeof SessionRoute
+  AuthenticatedContinueRoute: typeof AuthenticatedContinueRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedPromptRoute: typeof AuthenticatedPromptRoute
+  AuthenticatedSessionRoute: typeof AuthenticatedSessionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/continue': {
-      id: '/continue'
+    '/_authenticated/continue': {
+      id: '/_authenticated/continue'
       path: '/continue'
       fullPath: '/continue'
-      preLoaderRoute: typeof ContinueRouteImport
+      preLoaderRoute: typeof AuthenticatedContinueRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/progress': {
-      id: '/progress'
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
       path: '/progress'
       fullPath: '/progress'
-      preLoaderRoute: typeof ProgressRouteImport
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prompt': {
-      id: '/prompt'
+    '/_authenticated/prompt': {
+      id: '/_authenticated/prompt'
       path: '/prompt'
       fullPath: '/prompt'
-      preLoaderRoute: typeof PromptRouteImport
+      preLoaderRoute: typeof AuthenticatedPromptRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/session': {
-      id: '/session'
+    '/_authenticated/session': {
+      id: '/_authenticated/session'
       path: '/session'
       fullPath: '/session'
-      preLoaderRoute: typeof SessionRouteImport
+      preLoaderRoute: typeof AuthenticatedSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ContinueRoute: ContinueRoute,
-  ProgressRoute: ProgressRoute,
-  PromptRoute: PromptRoute,
-  SessionRoute: SessionRoute,
+  AuthenticatedContinueRoute: AuthenticatedContinueRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedPromptRoute: AuthenticatedPromptRoute,
+  AuthenticatedSessionRoute: AuthenticatedSessionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
