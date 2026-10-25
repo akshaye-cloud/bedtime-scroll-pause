@@ -188,3 +188,13 @@ describe("continue prompt", () => {
     expect(s.extensions).toBe(1);
   });
 });
+
+import { fmtFullDate } from "@/lib/pause";
+describe("home date line", () => {
+  it("shows the full date like Sunday, 25 October 2026", () => {
+    expect(fmtFullDate(new Date(2026, 9, 25, 20, 0).getTime())).toBe("Sunday, 25 October 2026");
+  });
+  it("rolls to the next date the following day", () => {
+    expect(fmtFullDate(new Date(2026, 9, 26, 0, 30).getTime())).toBe("Monday, 26 October 2026");
+  });
+});
