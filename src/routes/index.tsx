@@ -47,7 +47,7 @@ function Home() {
   return (
     <Shell>
       <h1 className="font-display text-4xl leading-tight">When do you want to stop scrolling?</h1>
-      <p className="mt-3 text-lg text-muted-foreground">Pick your sleep time. Start a session about an hour before, and Pause will show a stopping screen here when the time arrives.</p>
+      <p className="mt-3 text-lg text-muted-foreground">Pick your sleep time. Start a session, and Pause will sound an alarm here 1 hour before that time.</p>
 
       <div className="panel mt-8">
         <label htmlFor="sleep" className="text-base text-muted-foreground">Sleep time</label>
@@ -65,7 +65,7 @@ function Home() {
         <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid}>Start pre-bedtime session</PrimaryButton>
       )}
       {target && !hasActive && (
-        <p className="mt-3 text-center text-muted-foreground">Your stopping screen will appear at {fmtTime(target)}. Keep this page open.</p>
+        <p className="mt-3 text-center text-muted-foreground">Your alarm will ring 1 hour before, at {fmtTime(target - 3600000)}. Keep this page open.</p>
       )}
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
     </Shell>

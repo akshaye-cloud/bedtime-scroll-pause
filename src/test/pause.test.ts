@@ -9,18 +9,26 @@ describe("pause rules", () => {
     expect(nextOccurrence("23:00", base) - base).toBe(60 * min);
     expect(nextOccurrence("21:00", base) - base).toBe(23 * 60 * min);
   });
-  it("+5mins pushes the prompt by 5 minutes", () => {
+  it("the alarm fires 60 minutes before the sleep time", () => {
+    const s = createSession("23:00", base);
+    expect(s.sleepAt - s.promptAt).toBe(60 * min);
+  });
+  it("starting within the hour alarms immediately", () => {
+    const s = createSession("22:30", base);
+    expect(s.promptAt).toBe(base);
+  });
+  it("+10mins pushes the alarm by 10 minutes", () => {
     const s = extend(createSession("23:00", base));
-    expect(s.promptAt - s.sleepAt).toBe(5 * min);
+    expect(s.promptAt - s.sleepAt).toBe(-50 * min);
   });
   it("a changed sleep time re-points the active session", () => {
     const s = retarget(createSession("23:00", base), "22:30", base);
     expect(s.sleepAt - base).toBe(30 * min);
-    expect(s.promptAt).toBe(s.sleepAt);
+    expect(s.sleepAt - s.promptAt).toBe(60 * min);
   });
   it("re-pointing keeps snoozes and the start time", () => {
     const s = retarget(extend(createSession("23:00", base)), "22:30", base);
-    expect(s.promptAt - s.sleepAt).toBe(5 * min);
+    expect(s.promptAt - s.sleepAt).toBe(-50 * min);
     expect(s.startedAt).toBe(base);
   });
   it("stopping before sleep time is early", () => {

@@ -66,8 +66,8 @@ function Session() {
       <p className="text-center text-base uppercase tracking-widest text-muted-foreground">Session active</p>
       <div className="mt-6 text-center font-display text-7xl tabular-nums">{h > 0 ? `${h}:` : ""}{pad(m)}:{pad(sec)}</div>
       <p className="mt-4 text-center text-lg text-muted-foreground">
-        until your {s.extensions ? "next" : "stopping"} prompt at {fmtTime(s.promptAt)}
-        {s.extensions > 0 && ` (extended ${s.extensions}×)`}
+        until your {s.extensions ? "next" : "1-hour"} alarm at {fmtTime(s.promptAt)}
+        {s.extensions > 0 && ` (snoozed ${s.extensions}×)`}
       </p>
       <PrimaryButton className="mt-12 w-full" onClick={stopNow}>I'm stopping now</PrimaryButton>
       <p className="mt-4 text-center text-sm text-muted-foreground">Keep this page open so the stopping screen can appear.</p>

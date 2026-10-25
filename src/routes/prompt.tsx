@@ -31,7 +31,7 @@ function Prompt() {
     if (!s) return;
     const now = Date.now();
     const next = extend(s);
-    if (next.promptAt <= now) next.promptAt = now + 5 * 60000;
+    if (next.promptAt <= now) next.promptAt = now + 10 * 60000;
     store.setActive(next);
     nav({ to: "/session" });
   };
@@ -48,9 +48,13 @@ function Prompt() {
           <div className="moon mx-auto" aria-hidden />
           <p className="mt-8 text-lg text-muted-foreground">It's {fmtTime(Date.now())}</p>
           <h1 className="mt-2 font-display text-5xl leading-tight">Time to put the phone down.</h1>
-          <p className="mt-4 text-lg text-muted-foreground">You planned to stop at {fmtTime(s.sleepAt)}.</p>
+          <p className="mt-4 text-lg text-muted-foreground">
+            {s.extensions === 0
+              ? `Your 1-hour alarm: you planned to stop at ${fmtTime(s.sleepAt)}.`
+              : `Snoozed ${s.extensions}× — you planned to stop at ${fmtTime(s.sleepAt)}.`}
+          </p>
           <PrimaryButton className="mt-10 w-full" onClick={stop} autoFocus>Stop</PrimaryButton>
-          <GhostButton className="mt-3 w-full" onClick={snooze}>+5 mins</GhostButton>
+          <GhostButton className="mt-3 w-full" onClick={snooze}>+10 mins</GhostButton>
         </div>
       )}
     </div>

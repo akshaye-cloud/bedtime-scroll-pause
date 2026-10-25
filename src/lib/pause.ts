@@ -17,7 +17,8 @@ export interface SessionRecord {
   outcome: Outcome;
 }
 
-export const EXTENSION_MIN = 5;
+export const EXTENSION_MIN = 10;
+export const WARN_MIN = 60;
 const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records" };
 
 /** Next occurrence of HH:MM after `now`. */
@@ -31,7 +32,8 @@ export function nextOccurrence(hhmm: string, now: number): number {
 
 export function createSession(hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
-  return { startedAt: now, sleepAt, promptAt: sleepAt, extensions: 0 };
+  const promptAt = Math.max(now, sleepAt - WARN_MIN * 60000);
+  return { startedAt: now, sleepAt, promptAt, extensions: 0 };
 }
 
 export function extend(s: ActiveSession): ActiveSession {
@@ -41,7 +43,7 @@ export function extend(s: ActiveSession): ActiveSession {
 /** Re-point an active session at a changed sleep time, keeping any snoozes. */
 export function retarget(s: ActiveSession, hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
-  return { ...s, sleepAt, promptAt: sleepAt + s.extensions * EXTENSION_MIN * 60000 };
+  return { ...s, sleepAt, promptAt: sleepAt - WARN_MIN * 60000 + s.extensions * EXTENSION_MIN * 60000 };
 }
 
 export function finish(s: ActiveSession, now: number): SessionRecord {
