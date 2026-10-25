@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Volume2 } from "lucide-react";
 import { PrimaryButton, GhostButton } from "@/components/Shell";
 import { fmtTime, pendingResume, resumeFromRecord, store, type SessionRecord } from "@/lib/pause";
+import { startAlarm } from "@/lib/alarm";
 
 export const Route = createFileRoute("/_authenticated/continue")({
   head: () => ({
@@ -21,11 +23,31 @@ function Continue() {
   const nav = useNavigate();
   const [state, setState] = useState<{ record: SessionRecord; variant: "before" | "after" } | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
+  const silence = useRef<(() => void) | undefined>(undefined);
   useEffect(() => { setState(pendingResume()); setLoaded(true); }, []);
 
-  const no = () => { store.clearResume(); nav({ to: "/progress" }); };
+  // The same sea-wave alarm sounds for both prompts, before and after the sleep time.
+  const shownFor = state?.record.id;
+  useEffect(() => {
+    if (shownFor === undefined) return;
+    silence.current = startAlarm(setAudioReady);
+    return () => { silence.current?.(); silence.current = undefined; };
+  }, [shownFor]);
+
+  const enableAudio = () => {
+    silence.current?.();
+    silence.current = startAlarm(setAudioReady);
+  };
+
+  const no = () => {
+    silence.current?.();
+    store.clearResume();
+    nav({ to: "/progress" });
+  };
   const yes = () => {
     if (!state) return;
+    silence.current?.();
     store.setActive(resumeFromRecord(state.record, Date.now()));
     nav({ to: "/session" });
   };
@@ -51,6 +73,14 @@ function Continue() {
           </p>
           <PrimaryButton className="mt-10 w-full" onClick={no} autoFocus>No</PrimaryButton>
           <GhostButton className="mt-3 w-full" onClick={yes}>Yes (+10 mins)</GhostButton>
+          {!audioReady && (
+            <GhostButton className="mt-3" onClick={enableAudio} aria-label="Enable ocean-wave audio" title="Enable ocean-wave audio">
+              <Volume2 className="h-5 w-5" aria-hidden="true" />
+            </GhostButton>
+          )}
+          <p role="status" className="mt-3 text-sm text-muted-foreground">
+            {audioReady ? "Ocean-wave audio playing." : "Sound may need a tap on the speaker."} Vibration depends on your device and browser.
+          </p>
         </div>
       )}
     </div>
