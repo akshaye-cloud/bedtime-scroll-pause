@@ -77,12 +77,17 @@ function Home() {
 
       <div className="panel mt-8">
         <label htmlFor="sleep" className="text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" />
+        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         <div className="mt-3 flex items-center justify-between text-base">
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
-          <button onClick={save} className="link-btn">Save time</button>
+          {!locked && <button onClick={save} className="link-btn">Save time</button>}
         </div>
+        {locked && (
+          <p role="status" className="mt-3 text-base" style={{ color: "var(--warn)" }}>
+            Locked for today: your sleep time stays at {fmtTime(nextOccurrence(time, Date.now()))} until tomorrow.
+          </p>
+        )}
       </div>
 
       {hasActive ? (
