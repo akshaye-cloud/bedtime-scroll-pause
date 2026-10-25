@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { finish, fmtTime, store, type ActiveSession } from "@/lib/pause";
+import { finish, fmtTime, store, syncActiveToSleepTime, type ActiveSession } from "@/lib/pause";
 
 export const Route = createFileRoute("/session")({
   head: () => ({
@@ -22,9 +22,16 @@ function Session() {
   const [now, setNow] = useState(0);
 
   useEffect(() => {
-    setS(store.getActive()); setNow(Date.now()); setLoaded(true);
+    setS(syncActiveToSleepTime()); setNow(Date.now()); setLoaded(true);
     const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    const resync = () => setS(syncActiveToSleepTime());
+    window.addEventListener("storage", resync);
+    document.addEventListener("visibilitychange", resync);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("storage", resync);
+      document.removeEventListener("visibilitychange", resync);
+    };
   }, []);
 
   useEffect(() => {

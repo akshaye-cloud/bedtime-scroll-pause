@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSession, extend, finish, summarize, nextOccurrence } from "@/lib/pause";
+import { createSession, extend, finish, retarget, summarize, nextOccurrence } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -12,6 +12,16 @@ describe("pause rules", () => {
   it("+5mins pushes the prompt by 5 minutes", () => {
     const s = extend(createSession("23:00", base));
     expect(s.promptAt - s.sleepAt).toBe(5 * min);
+  });
+  it("a changed sleep time re-points the active session", () => {
+    const s = retarget(createSession("23:00", base), "22:30", base);
+    expect(s.sleepAt - base).toBe(30 * min);
+    expect(s.promptAt).toBe(s.sleepAt);
+  });
+  it("re-pointing keeps snoozes and the start time", () => {
+    const s = retarget(extend(createSession("23:00", base)), "22:30", base);
+    expect(s.promptAt - s.sleepAt).toBe(5 * min);
+    expect(s.startedAt).toBe(base);
   });
   it("stopping before sleep time is early", () => {
     expect(finish(createSession("23:00", base), base + 30 * min).outcome).toBe("stopped_early");

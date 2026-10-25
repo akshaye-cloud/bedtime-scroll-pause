@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtTime, nextOccurrence, store } from "@/lib/pause";
+import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/pause";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +32,8 @@ function Home() {
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
     store.setSleepTime(time); setSaved(time); setError("");
+    const a = store.getActive();
+    if (a) store.setActive(retarget(a, time, Date.now()));
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
