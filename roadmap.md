@@ -7,3 +7,7 @@
 - [x] Track taps and typing within Pause without resetting inactivity on refresh.
 - [x] Stop and save after sleep time and two inactive minutes, with a clear recorded reason.
 - [x] Test timing boundaries and verify activity, automatic stop, and saved results.
+
+# Daily sleep-time lock
+- [x] Lock the saved sleep time for the rest of the day, per account (demo1 exempt for testing).
+- [x] Browser-verify locked state on a demo account and exemption on demo1.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, latestPerDay, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -28,6 +28,27 @@ describe("progress per day", () => {
     const s = summarize(latestPerDay([rec("b", day1b, "continued"), rec("a", day1a)]));
     expect(s.total).toBe(1);
     expect(s.rate).toBe(0);
+  });
+});
+
+describe("daily sleep-time lock", () => {
+  it("locks the saved time for the rest of the day", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    expect(getSleepLock("user-a", now)).toBeNull();
+    setSleepLock("user-a", "23:00", now);
+    expect(getSleepLock("user-a", now)).toBe("23:00");
+    expect(getSleepLock("user-a", now + 3 * 60 * min)).toBe("23:00"); // later same day still locked
+  });
+  it("unlocks the next day", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    setSleepLock("user-b", "23:00", now);
+    const tomorrow = new Date(2026, 9, 26, 8, 0).getTime();
+    expect(getSleepLock("user-b", tomorrow)).toBeNull();
+  });
+  it("locks are per account", () => {
+    const now = new Date(2026, 9, 25, 20, 0).getTime();
+    setSleepLock("user-c", "22:30", now);
+    expect(getSleepLock("user-d", now)).toBeNull();
   });
 });
 

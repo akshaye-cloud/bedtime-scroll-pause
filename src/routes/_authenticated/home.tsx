@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtTime, nextOccurrence, retarget, store } from "@/lib/pause";
+import { createSession, fmtTime, nextOccurrence, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
@@ -25,17 +26,31 @@ function Home() {
   const [saved, setSaved] = useState<string | null>(null);
   const [hasActive, setHasActive] = useState(false);
   const [error, setError] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [lockExempt, setLockExempt] = useState(false);
 
   useEffect(() => {
     const t = store.getSleepTime();
     if (t) { setTime(t); setSaved(t); }
     setHasActive(!!store.getActive());
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      setUserId(data.user.id);
+      setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
+      const locked = getSleepLock(data.user.id);
+      if (locked) { setTime(locked); setSaved(locked); }
+    });
   }, []);
+
+  // Once saved, the sleep time is locked for the rest of the day (demo1 is exempt for testing).
+  const locked = !!userId && !lockExempt && getSleepLock(userId) !== null;
 
   const valid = /^\d{2}:\d{2}$/.test(time);
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
+    if (locked) return;
     store.setSleepTime(time); setSaved(time); setError("");
+    if (userId && !lockExempt) setSleepLock(userId, time);
     const a = store.getActive();
     if (a) store.setActive(retarget(a, time, Date.now()));
   };
@@ -43,6 +58,7 @@ function Home() {
     if (!valid) return setError("Please choose a valid time.");
     void prepareAlarmAudio();
     store.setSleepTime(time);
+    if (userId && !lockExempt) setSleepLock(userId, time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
   };
@@ -61,12 +77,17 @@ function Home() {
 
       <div className="panel mt-8">
         <label htmlFor="sleep" className="text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" />
+        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         <div className="mt-3 flex items-center justify-between text-base">
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
-          <button onClick={save} className="link-btn">Save time</button>
+          {!locked && <button onClick={save} className="link-btn">Save time</button>}
         </div>
+        {locked && (
+          <p role="status" className="mt-3 text-base" style={{ color: "var(--warn)" }}>
+            Locked for today: your sleep time stays at {fmtTime(nextOccurrence(time, Date.now()))} until tomorrow.
+          </p>
+        )}
       </div>
 
       {hasActive ? (

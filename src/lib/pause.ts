@@ -122,6 +122,26 @@ export function dayKey(t: number): string {
 }
 
 /**
+ * Daily sleep-time lock, per account and calendar day. Once a user saves a
+ * sleep time today, it cannot be changed again until tomorrow. demo1 is
+ * exempt so it stays usable for testing.
+ */
+export const LOCK_EXEMPT_EMAIL = "demo1@pause.app";
+
+function sleepLockKey(userId: string, now: number): string {
+  return `pause.sleepLock.${userId}.${dayKey(now)}`;
+}
+
+/** The locked sleep time for today, or null if nothing is locked yet. */
+export function getSleepLock(userId: string, now = Date.now()): string | null {
+  return read<string | null>(sleepLockKey(userId, now), null);
+}
+
+export function setSleepLock(userId: string, hhmm: string, now = Date.now()): void {
+  write(sleepLockKey(userId, now), hhmm);
+}
+
+/**
  * One entry per day: when several sessions end on the same day, keep the latest
  * (records are stored newest-first, so the first per day wins). The next day's
  * session then appears as its own entry.
