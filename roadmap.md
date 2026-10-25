@@ -15,3 +15,7 @@
 # Home date line
 - [x] Show today's full date (e.g. Sunday, 25 October 2026) above the sleep time, rolling to the next date each day.
 - [x] Test the date format and the rollover to the following day.
+
+# Continue prompt audio
+- [x] Play the sea-wave alarm on both continue prompts, before and after the sleep time, with cleanup.
+- [x] Browser-verify audio and vibration on each variant.
