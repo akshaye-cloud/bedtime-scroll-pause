@@ -33,7 +33,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <PauseMark size={26} className="shrink-0 text-primary" />
           <span className="font-display text-xl text-foreground sm:text-2xl">Pause</span>
         </Link>
-        <nav className="flex min-w-0 gap-2 text-sm sm:gap-5 sm:text-base">
+        <nav className="flex min-w-0 gap-2 text-[13px] sm:gap-5 sm:text-base">
           <Link to="/home" className="nav-link">Home</Link>
           <Link to="/session" className="nav-link">Session</Link>
           <Link to="/progress" className="nav-link">Progress</Link>
