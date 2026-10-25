@@ -76,7 +76,19 @@ function Session() {
         until your {s.extensions ? "next" : "1-hour"} alarm at {fmtTime(s.promptAt)}
         {s.extensions > 0 && ` (snoozed ${s.extensions}×)`}
       </p>
+      {sessionShowsStop(s) &&
+        (sessionActiveTooLong(s, now) ? (
+          <div className="mt-10">
+            <button className="btn-primary block w-full opacity-50" disabled aria-disabled="true">Stop</button>
+            <p className="mt-3 text-center text-sm text-(--warn)">
+              This session has been running for more than 2 hours, so it can no longer be stopped manually. Start a fresh session from Home.
+            </p>
+          </div>
+        ) : (
+          <button className="btn-primary mt-10 block w-full" onClick={stopNow}>Stop</button>
+        ))}
       <p className="mt-12 text-center text-sm text-muted-foreground">Keep this page open so the alarm screen can appear.</p>
+
     </Shell>
   );
 }
