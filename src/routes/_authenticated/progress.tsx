@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtDate, fmtTime, latestPerDay, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
+import { fmtDate, fmtTime, latestPerDay, LOCK_EXEMPT_EMAIL, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -19,7 +20,9 @@ export const Route = createFileRoute("/_authenticated/progress")({
 
 function Progress() {
   const [records, setRecords] = useState<SessionRecord[] | null>(null);
+  const [canClear, setCanClear] = useState(false);
   useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setCanClear(data.user?.email === LOCK_EXEMPT_EMAIL));
     const load = () => setRecords(store.getRecords());
     load();
     window.addEventListener("pause:records-synced", load);
@@ -69,7 +72,7 @@ function Progress() {
             ))}
           </ul>
           <Link to="/home" className="btn-primary mt-10 block text-center">Start tonight's session</Link>
-          <button onClick={clear} className="link-btn mt-6 block w-full text-center">Clear all records</button>
+          {canClear && <button onClick={clear} className="link-btn mt-6 block w-full text-center">Clear all records</button>}
         </>
       )}
     </Shell>
