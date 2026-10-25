@@ -17,6 +17,12 @@ describe("pause rules", () => {
     expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
     expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
   });
+  it("disables Stop once the session runs for more than 2 hours", () => {
+    const s = createSession("23:00", base);
+    expect(sessionActiveTooLong(s, base + 120 * min)).toBe(false);
+    expect(sessionActiveTooLong(s, base + 120 * min + 1)).toBe(true);
+    expect(sessionActiveTooLong(s, base + 121 * min)).toBe(true);
+  });
   it("refresh preserves the inactivity deadline", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
     const restored = JSON.parse(JSON.stringify(s));
