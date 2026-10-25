@@ -32,7 +32,7 @@ function Feedback() {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
-  const [errors, setErrors] = useState<{ rating?: string; comment?: string }>({});
+  const [errors, setErrors] = useState<{ rating?: string | undefined; comment?: string | undefined }>({});
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
 
