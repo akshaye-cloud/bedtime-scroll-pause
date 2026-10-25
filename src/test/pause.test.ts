@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, latestPerDay, retarget, sessionActiveTooLong, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;

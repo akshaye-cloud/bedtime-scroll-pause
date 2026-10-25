@@ -27,7 +27,8 @@ function Progress() {
   }, []);
 
   if (!records) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
-  const s = summarize(records);
+  const days = latestPerDay(records);
+  const s = summarize(days);
 
   const clear = () => {
     if (confirm("Delete all recorded sessions?")) { store.clearRecords(); setRecords([]); }
@@ -52,7 +53,7 @@ function Progress() {
           </div>
           <h2 className="mt-10 font-display text-2xl">Sessions</h2>
           <ul className="mt-4 space-y-3">
-            {records.map((r) => (
+            {days.map((r) => (
               <li key={r.id} className="panel flex items-center justify-between gap-4">
                 <div>
                   <p className="text-lg">{fmtDate(r.sleepAt)}</p>
