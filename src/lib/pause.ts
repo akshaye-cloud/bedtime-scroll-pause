@@ -38,6 +38,12 @@ export function extend(s: ActiveSession): ActiveSession {
   return { ...s, extensions: s.extensions + 1, promptAt: s.promptAt + EXTENSION_MIN * 60000 };
 }
 
+/** Re-point an active session at a changed sleep time, keeping any snoozes. */
+export function retarget(s: ActiveSession, hhmm: string, now: number): ActiveSession {
+  const sleepAt = nextOccurrence(hhmm, now);
+  return { ...s, sleepAt, promptAt: sleepAt + s.extensions * EXTENSION_MIN * 60000 };
+}
+
 export function finish(s: ActiveSession, now: number): SessionRecord {
   const beyond = Math.max(0, Math.round((now - s.sleepAt) / 60000));
   let outcome: Outcome;
@@ -87,6 +93,20 @@ export const store = {
   addRecord: (r: SessionRecord) => write(K.records, [r, ...read<SessionRecord[]>(K.records, [])]),
   clearRecords: () => write(K.records, null),
 };
+
+/**
+ * Keep the running session in step with the saved sleep time: if the sleep time
+ * was changed (e.g. on Home), the session's target and countdown move to it.
+ */
+export function syncActiveToSleepTime(now = Date.now()): ActiveSession | null {
+  const t = store.getSleepTime();
+  const s = store.getActive();
+  if (!t || !s) return s;
+  if (nextOccurrence(t, now) === s.sleepAt) return s;
+  const next = retarget(s, t, now);
+  store.setActive(next);
+  return next;
+}
 
 export const fmtTime = (t: number) =>
   new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
