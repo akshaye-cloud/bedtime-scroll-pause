@@ -71,6 +71,7 @@ function Progress() {
                 <div>
                   <p className="text-lg">{fmtDate(r.sleepAt)}</p>
                   <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped {fmtTime(r.endedAt)}</p>
+                  <p className="text-sm text-muted-foreground">+10 mins: {r.preExtensions ?? 0} in 1-hr window · {r.postExtensions ?? 0} after bedtime</p>
                   {r.endReason === "inactive_in_pause" && (
                     <p className="mt-1 text-sm text-muted-foreground">Automatically ended: no taps or typing in Pause for 2 minutes after sleep time was reached. Activity in other apps is unknown.</p>
                   )}
@@ -122,7 +123,7 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
         <div className="panel mt-4 overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
             <thead className="text-muted-foreground">
-              <tr><th className="p-3">Date</th><th className="p-3">Planned</th><th className="p-3">Stopped</th><th className="p-3">Result</th></tr>
+              <tr><th className="p-3">Date</th><th className="p-3">Planned</th><th className="p-3">Stopped</th><th className="p-3">+10 mins (1-hr window)</th><th className="p-3">+10 mins (after bedtime)</th><th className="p-3">Result</th></tr>
             </thead>
             <tbody>
               {rows.map((r) => (
@@ -130,6 +131,8 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
                   <td className="p-3">{new Date(r.sleepAt).getDate()} {MONTHS[month]?.slice(0, 3)}</td>
                   <td className="p-3">{fmtTime(r.sleepAt)}</td>
                   <td className="p-3">{fmtTime(r.endedAt)}</td>
+                  <td className="p-3">{r.preExtensions ?? 0}</td>
+                  <td className="p-3">{r.postExtensions ?? 0}</td>
                   <td className="p-3">{outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}</td>
                 </tr>
               ))}

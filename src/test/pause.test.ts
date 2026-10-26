@@ -222,3 +222,23 @@ describe("home date line", () => {
     expect(fmtFullDate(new Date(2026, 9, 26, 0, 30).getTime())).toBe("Monday, 26 October 2026");
   });
 });
+
+import { createSession as cs2, extend as ex2, finish as fin2 } from "@/lib/pause";
+describe("snooze rule and counts", () => {
+  const m = 60000;
+  const base = new Date(2026, 9, 26, 22, 0).getTime(); // alarm time; bedtime 23:00
+  it("snooze before bedtime then stop early counts as stopped early", () => {
+    const s = ex2(cs2("23:00", base), base + 1 * m);
+    const r = fin2(s, base + 30 * m);
+    expect(r.outcome).toBe("stopped_early");
+    expect(r.preExtensions).toBe(1);
+    expect(r.postExtensions).toBe(0);
+  });
+  it("snooze after bedtime counts post and continued", () => {
+    const s = ex2(ex2(cs2("23:00", base), base + 50 * m), base + 61 * m);
+    const r = fin2(s, base + 75 * m);
+    expect(r.outcome).toBe("continued");
+    expect(r.preExtensions).toBe(1);
+    expect(r.postExtensions).toBe(1);
+  });
+});

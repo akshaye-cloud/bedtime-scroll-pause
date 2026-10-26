@@ -264,7 +264,7 @@ export function continueVariant(r: SessionRecord, now: number): "before" | "afte
 
 /** "Yes" on the continue prompt: reopen the ended session with a 10-minute extension. */
 export function resumeFromRecord(r: SessionRecord, now: number): ActiveSession {
-  return { startedAt: r.startedAt, sleepAt: r.sleepAt, lastActivityAt: now, extensions: r.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
+  return { startedAt: r.startedAt, sleepAt: r.sleepAt, lastActivityAt: now, extensions: r.extensions + 1, ...countSnooze(r, now), promptAt: now + EXTENSION_MIN * 60000 };
 }
 
 export function pendingResume(now = Date.now()): { record: SessionRecord; variant: "before" | "after" } | null {
