@@ -63,7 +63,9 @@ export function shouldAutoStop(s: ActiveSession, now: number): boolean {
 export function stopInactiveSession(now = Date.now()): SessionRecord | null {
   const s = store.getActive();
   if (!s || !shouldAutoStop(s, now)) return null;
-  const record: SessionRecord = { ...finish(s, now), endReason: "inactive_in_pause" };
+  // Browser suspension must not count an unattended night as continued activity.
+  const endedAt = Math.min(now, s.sleepAt + INACTIVITY_MIN * 60000);
+  const record: SessionRecord = { ...finish(s, endedAt), endReason: "inactive_in_pause" };
   store.addRecord(record);
   store.setActive(null);
   return record;

@@ -92,6 +92,30 @@ describe("pause rules", () => {
     expect(store.getRecords()).toHaveLength(1);
     store.clearRecords();
   });
+  it("caps an overnight inactivity auto-stop at 11:02 PM and +2 minutes", () => {
+    store.clearRecords();
+    const s = createSession("23:00", base);
+    store.setActive(s);
+    const r = stopInactiveSession(s.sleepAt + 649 * min);
+    expect(r?.endedAt).toBe(new Date(2026, 0, 1, 23, 2).getTime());
+    expect(r?.minutesBeyond).toBe(2);
+    expect(store.getRecords()[0]?.endedAt).toBe(s.sleepAt + 2 * min);
+    expect(store.getActive()).toBeNull();
+    store.clearRecords();
+  });
+  it("does not record a future time when inactivity is detected at bedtime", () => {
+    store.clearRecords();
+    const s = createSession("23:00", base);
+    store.setActive(s);
+    expect(stopInactiveSession(s.sleepAt)?.endedAt).toBe(s.sleepAt);
+    store.clearRecords();
+  });
+  it("does not cap manual stops", () => {
+    const s = createSession("23:00", base);
+    const r = finish(s, s.sleepAt + 649 * min);
+    expect(r.endedAt).toBe(s.sleepAt + 649 * min);
+    expect(r.minutesBeyond).toBe(649);
+  });
   it("targets the next occurrence of the sleep time", () => {
     expect(nextOccurrence("23:00", base) - base).toBe(60 * min);
     expect(nextOccurrence("21:00", base) - base).toBe(23 * 60 * min);
