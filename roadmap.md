@@ -22,4 +22,4 @@
 
 # Auto-stop timestamp cap
 - [x] Cap new inactivity records at two minutes after bedtime without changing manual stops.
-- [ ] Verify overnight reopening records +2 minutes and run timing tests.
+- [x] Verify overnight reopening records +2 minutes and run timing tests.
