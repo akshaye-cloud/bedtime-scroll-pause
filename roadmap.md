@@ -19,3 +19,7 @@
 # Continue prompt audio
 - [x] Play the sea-wave alarm on both continue prompts, before and after the sleep time, with cleanup.
 - [x] Browser-verify audio and vibration on each variant.
+
+# Auto-stop timestamp cap
+- [x] Cap new inactivity records at two minutes after bedtime without changing manual stops.
+- [ ] Verify overnight reopening records +2 minutes and run timing tests.
