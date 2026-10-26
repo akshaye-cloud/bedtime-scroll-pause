@@ -47,6 +47,21 @@ export function reminderAt(hhmm: string, now: number): number {
   return nextOccurrence(hhmm, now) - WARN_MIN * 60000;
 }
 
+/** True when today's HH:MM has already passed, so it can't be chosen as tonight's sleep time. */
+export function isPastTime(hhmm: string, now: number): boolean {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date(now);
+  d.setHours(h ?? 0, m ?? 0, 0, 0);
+  return d.getTime() < now;
+}
+
+/** "HH:MM" for the current moment — the earliest time the picker accepts. */
+export function hhmmNow(now: number): string {
+  const d = new Date(now);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+
 
 export function createSession(hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
