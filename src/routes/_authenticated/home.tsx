@@ -43,8 +43,6 @@ function Home() {
       if (!data.user) return;
       setUserId(data.user.id);
       setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
-      const locked = getSleepLock(data.user.id);
-      if (locked) { setTime(locked); setSaved(locked); }
     });
   }, []);
 
@@ -104,13 +102,11 @@ function Home() {
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
           {!locked && <button onClick={save} className="link-btn">Save time</button>}
         </div>
-        {!locked && !lockExempt && (
-          <p className="mt-3 text-base text-muted-foreground">Note: once saved, your sleep time cannot be changed for the rest of the day.</p>
+        {valid && !past && isTooSoon(time, now) && !error && (
+          <p role="alert" className="mt-3 text-base text-(--warn)">{soonMsg}</p>
         )}
-        {locked && (
-          <p role="status" className="mt-3 text-base" style={{ color: "var(--warn)" }}>
-            Locked for today: your sleep time stays at {fmtTime(nextOccurrence(time, Date.now()))} until tomorrow.
-          </p>
+        {!lockExempt && (
+          <p className="mt-3 text-base text-muted-foreground">You can change your sleep time anytime, as long as it's more than 1 hour away.</p>
         )}
       </div>
 
