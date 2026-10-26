@@ -29,6 +29,7 @@ function Home() {
   const [userId, setUserId] = useState<string | null>(null);
   const [lockExempt, setLockExempt] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [tomorrow, setTomorrow] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15000);
@@ -37,7 +38,7 @@ function Home() {
 
   useEffect(() => {
     const t = store.getSleepTime();
-    if (t) { setTime(t); setSaved(t); }
+    if (t) { setTime(t); setSaved(t); if (isPastTime(t, Date.now())) setTomorrow(true); }
     setHasActive(!!store.getActive());
     void supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
@@ -54,7 +55,7 @@ function Home() {
   const valid = /^\d{2}:\d{2}$/.test(time);
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
-    if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
+    if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     store.setSleepTime(time); setSaved(time); setError("");
     // Today's recorded stops follow the new plan so Progress shows no old time.
@@ -64,7 +65,7 @@ function Home() {
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
-    if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
+    if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     void prepareAlarmAudio();
     store.setSleepTime(time);
@@ -74,7 +75,7 @@ function Home() {
   };
 
   const target = valid ? nextOccurrence(time, now) : null;
-  const past = valid && isPastTime(time, now);
+  const past = valid && !tomorrow && isPastTime(time, now);
 
   return (
     <Shell>
@@ -84,7 +85,16 @@ function Home() {
       <div className="panel mt-8">
         <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} min={hhmmNow(now)} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        <input id="sleep" type="time" value={time} min={tomorrow ? undefined : hhmmNow(now)} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        <div role="group" aria-label="Sleep day" className="mt-3 flex gap-2">
+          {[false, true].map((t) => (
+            <button key={String(t)} type="button" aria-pressed={tomorrow === t} onClick={() => { setTomorrow(t); setError(""); }}
+              className={`rounded-md border px-4 py-2 text-base ${tomorrow === t ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>
+              {t ? `Tomorrow (${fmtFullDate(now + 86400000).split(",")[0]})` : "Today"}
+            </button>
+          ))}
+        </div>
+        {tomorrow && valid && <p className="mt-2 text-base text-muted-foreground">Sleep time: {fmtFullDate(nextOccurrence(time, now))}, {fmtTime(nextOccurrence(time, now))}. Pick a time after midnight, e.g. 00:30.</p>}
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         {valid && past && !error && (
           locked ? (
