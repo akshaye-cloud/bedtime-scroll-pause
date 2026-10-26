@@ -319,3 +319,43 @@ describe("sleep time cannot be set in the past", () => {
   });
 });
 
+describe("progress follows the changed sleep time", () => {
+  const now = new Date(2026, 9, 26, 19, 50).getTime();
+  const todayPlan = new Date(2026, 9, 26, 11, 21).getTime();
+  const newPlan = new Date(2026, 9, 26, 23, 0).getTime();
+  const yesterdayPlan = new Date(2026, 9, 25, 23, 0).getTime();
+
+  it("re-plans today's stop to the new sleep time and reclassifies its outcome", () => {
+    store.clearRecords();
+    store.addRecord({ ...rec("t1", todayPlan, "continued"), endedAt: todayPlan + 10 * min, minutesBeyond: 10 });
+    const updated = reapplySleepTimeToToday("23:00", now);
+    expect(updated).toHaveLength(1);
+    const r = store.getRecords()[0];
+    expect(r?.sleepAt).toBe(newPlan);
+    expect(r?.outcome).toBe("stopped_early");
+    expect(r?.minutesBeyond).toBe(0);
+    expect(r?.id).toBe("t1");
+    store.clearRecords();
+  });
+  it("keeps earlier days at the plan they ran with", () => {
+    store.clearRecords();
+    store.addRecord(rec("y1", yesterdayPlan, "continued"));
+    expect(reapplySleepTimeToToday("23:00", now)).toHaveLength(0);
+    expect(store.getRecords()[0]?.sleepAt).toBe(yesterdayPlan);
+    store.clearRecords();
+  });
+  it("re-plans every stop made today while keeping each stopped time", () => {
+    store.clearRecords();
+    const laterToday = new Date(2026, 9, 26, 13, 0).getTime();
+    store.addRecord({ ...rec("a1", todayPlan, "continued"), endedAt: todayPlan + 10 * min, minutesBeyond: 10 });
+    store.addRecord({ ...rec("b1", laterToday), endedAt: laterToday + 5 * min, minutesBeyond: 0, outcome: "stopped_early" });
+    reapplySleepTimeToToday("23:00", now);
+    const rs = store.getRecords();
+    expect(rs).toHaveLength(2);
+    expect(rs.every((r) => r.sleepAt === newPlan)).toBe(true);
+    expect(rs.find((r) => r.id === "a1")?.endedAt).toBe(todayPlan + 10 * min);
+    expect(rs.find((r) => r.id === "b1")?.endedAt).toBe(laterToday + 5 * min);
+    store.clearRecords();
+  });
+});
+
