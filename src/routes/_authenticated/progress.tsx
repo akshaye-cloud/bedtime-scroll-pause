@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtDate, fmtTime, latestPerDay, LOCK_EXEMPT_EMAIL, recordResultLabel, stoppedTimeTone, store, summarize, type SessionRecord } from "@/lib/pause";
+import { fmtDate, fmtTime, groupByDay, LOCK_EXEMPT_EMAIL, recordResultLabel, stoppedTimeTone, store, summarize, type DayGroup, type SessionRecord } from "@/lib/pause";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/progress")({
@@ -22,6 +22,7 @@ function Progress() {
   const [records, setRecords] = useState<SessionRecord[] | null>(null);
   const [canClear, setCanClear] = useState(false);
   const [view, setView] = useState<"list" | "table">("list");
+  const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => setCanClear(data.user?.email === LOCK_EXEMPT_EMAIL));
     const load = () => setRecords(store.getRecords());
@@ -35,8 +36,18 @@ function Progress() {
   }, []);
 
   if (!records) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
-  const days = latestPerDay(records);
+  const dayGroups = groupByDay(records);
+  const days = dayGroups.map((g) => g.latest);
   const s = summarize(days);
+
+  const toggleDay = (key: string) => {
+    setOpenDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const clear = () => {
     if (confirm("Delete all recorded sessions?")) { store.clearRecords(); setRecords([]); }
@@ -67,23 +78,11 @@ function Progress() {
             </div>
           </div>
           {view === "table" ? (
-            <MonthTable days={days} />
+            <MonthTable groups={dayGroups} />
           ) : (
           <ul className="mt-4 space-y-3">
-            {days.map((r) => (
-              <li key={r.id} className="panel flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-lg">{fmtDate(r.sleepAt)}</p>
-                  <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped <StoppedTime record={r} /></p>
-                  <p className="text-sm text-muted-foreground">+10 mins: {r.preExtensions ?? 0} in 1-hr window · {r.postExtensions ?? 0} after bedtime</p>
-                  {r.endReason === "inactive_in_pause" && (
-                    <p className="mt-1 text-sm text-muted-foreground">Automatically ended due to inactivity in Pause. Activity in other apps is unknown.</p>
-                  )}
-                </div>
-                <span className={r.endReason === "inactive_in_pause" ? "text-sm text-muted-foreground" : r.outcome === "continued" ? "chip-warn" : "chip-ok"}>
-                  {recordResultLabel(r)}
-                </span>
-              </li>
+            {dayGroups.map((g) => (
+              <DayItem key={g.key} group={g} open={openDays.has(g.key)} onToggle={() => toggleDay(g.key)} />
             ))}
           </ul>
           )}
