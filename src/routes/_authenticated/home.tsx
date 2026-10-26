@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, nextOccurrence, reminderAt, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, nextOccurrence, reminderAt, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,12 @@ function Home() {
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [lockExempt, setLockExempt] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const t = store.getSleepTime();
@@ -48,6 +54,7 @@ function Home() {
   const valid = /^\d{2}:\d{2}$/.test(time);
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
+    if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (locked) return;
     store.setSleepTime(time); setSaved(time); setError("");
     if (userId && !lockExempt) setSleepLock(userId, time);
@@ -56,6 +63,7 @@ function Home() {
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
+    if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     void prepareAlarmAudio();
     store.setSleepTime(time);
     if (userId && !lockExempt) setSleepLock(userId, time);
@@ -63,12 +71,8 @@ function Home() {
     nav({ to: "/session" });
   };
 
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 15000);
-    return () => clearInterval(id);
-  }, []);
   const target = valid ? nextOccurrence(time, now) : null;
+  const past = valid && isPastTime(time, now);
 
   return (
     <Shell>
@@ -78,9 +82,20 @@ function Home() {
       <div className="panel mt-8">
         <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        <input id="sleep" type="time" value={time} min={hhmmNow(now)} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
-        {valid && (
+        {valid && past && !error && (
+          locked ? (
+            <p role="alert" className="mt-3 text-base text-(--warn)">
+              Your locked sleep time ({fmtTime(nextOccurrence(time, now))}) has already passed today. You can set a new time tomorrow.
+            </p>
+          ) : (
+            <p role="alert" className="mt-3 text-base text-(--warn)">
+              You can't set a sleep time earlier than the current time ({fmtTime(now)}). Pick a later time.
+            </p>
+          )
+        )}
+        {valid && !past && (
           <p role="status" className="mt-3 text-base">You'll be reminded at <strong className="text-primary">{fmtTime(reminderAt(time, now))}</strong>.</p>
         )}
 
@@ -101,9 +116,9 @@ function Home() {
       {hasActive ? (
         <PrimaryButton className="mt-8 w-full" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
       ) : (
-        <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid}>Start pre-bedtime session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid || past}>Start pre-bedtime session</PrimaryButton>
       )}
-      {target && !hasActive && (
+      {target && !hasActive && !past && (
         target - now <= 3600000 ? (
           <p role="status" className="panel mt-3 text-center text-base">
             <strong className="text-primary">Heads up:</strong> {fmtTime(target)} is less than 1 hour away, so your alarm will appear right after you start the session.
