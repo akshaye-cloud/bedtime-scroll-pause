@@ -48,25 +48,26 @@ function Home() {
     });
   }, []);
 
-  // Once saved, the sleep time is locked for the rest of the day (demo1 is exempt for testing).
-  const locked = !!userId && !lockExempt && getSleepLock(userId) !== null;
+  // The sleep time can be changed any time, but (except demo1) only to a time more than 1 hour away.
+  const locked = false;
+  const soonMsg = "Your sleep time must be more than 1 hour from now, so it can't be saved. Pick a later time.";
+  const isTooSoon = (hhmm: string, at: number) => !lockExempt && nextOccurrence(hhmm, at) - at <= 60 * 60_000;
 
   const valid = /^\d{2}:\d{2}$/.test(time);
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
     if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
-    if (locked) return;
+    if (isTooSoon(time, Date.now())) return setError(soonMsg);
     store.setSleepTime(time); setSaved(time); setError("");
-    if (userId && !lockExempt) setSleepLock(userId, time);
     const a = store.getActive();
     if (a) store.setActive(retarget(a, time, Date.now()));
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
     if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
+    if (isTooSoon(time, Date.now())) return setError(soonMsg);
     void prepareAlarmAudio();
     store.setSleepTime(time);
-    if (userId && !lockExempt) setSleepLock(userId, time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
   };
