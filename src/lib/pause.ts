@@ -28,7 +28,8 @@ export const EXTENSION_MIN = 10;
 export const WARN_MIN = 60;
 export const RESPONSE_MIN = 2;
 export const AUTO_SNOOZE_MIN = 8;
-export const INACTIVITY_MIN = 2;
+export const INACTIVITY_MIN = 60;
+export const INACTIVITY_RECORD_CAP_MIN = 2;
 const K = { time: "pause.sleepTime", active: "pause.active", records: "pause.records", resume: "pause.resume" };
 export const RESUME_WINDOW_MIN = 6 * 60;
 
@@ -68,7 +69,7 @@ export function stopInactiveSession(now = Date.now()): SessionRecord | null {
   const s = store.getActive();
   if (!s || !shouldAutoStop(s, now)) return null;
   // Browser suspension must not count an unattended night as continued activity.
-  const endedAt = Math.min(now, s.sleepAt + INACTIVITY_MIN * 60000);
+  const endedAt = Math.min(now, s.sleepAt + INACTIVITY_RECORD_CAP_MIN * 60000);
   const record: SessionRecord = { ...finish(s, endedAt), endReason: "inactive_in_pause" };
   store.addRecord(record);
   store.setActive(null);
@@ -255,6 +256,20 @@ export const outcomeLabel: Record<Outcome, string> = {
   stopped_on_time: "Stopped on time",
   continued: "Continued past time",
 };
+
+/** Color only the original bedtime window; snoozes and end reasons do not shift it. */
+export function stoppedTimeTone(r: Pick<SessionRecord, "sleepAt" | "endedAt">): "green" | "amber" | "red" | "neutral" {
+  const remaining = r.sleepAt - r.endedAt;
+  if (remaining < 0) return "red";
+  if (remaining < 30 * 60000) return "amber";
+  if (remaining <= 60 * 60000) return "green";
+  return "neutral";
+}
+
+export function recordResultLabel(r: SessionRecord): string {
+  if (r.endReason === "inactive_in_pause") return "Inactive";
+  return outcomeLabel[r.outcome] + (r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : "");
+}
 
 /** Which "continue?" prompt to show when Pause is reopened after a session ended. */
 export function continueVariant(r: SessionRecord, now: number): "before" | "after" | null {
