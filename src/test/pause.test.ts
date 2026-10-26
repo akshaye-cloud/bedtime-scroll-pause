@@ -302,3 +302,20 @@ describe("stopped-time history", () => {
     store.clearRecords();
   });
 });
+
+describe("sleep time cannot be set in the past", () => {
+  const now = new Date(2026, 9, 26, 19, 12).getTime();
+  it("rejects a time earlier than the current time", () => {
+    expect(isPastTime("18:00", now)).toBe(true);
+    expect(isPastTime("19:11", now)).toBe(true);
+  });
+  it("allows the current minute and any later time today", () => {
+    expect(isPastTime("19:12", now)).toBe(false);
+    expect(isPastTime("23:00", now)).toBe(false);
+  });
+  it("gives the current clock time as the picker's minimum", () => {
+    expect(hhmmNow(now)).toBe("19:12");
+    expect(hhmmNow(new Date(2026, 9, 26, 7, 5).getTime())).toBe("07:05");
+  });
+});
+
