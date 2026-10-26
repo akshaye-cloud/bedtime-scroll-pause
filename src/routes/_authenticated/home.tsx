@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, nextOccurrence, reminderAt, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,8 @@ function Home() {
     if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     store.setSleepTime(time); setSaved(time); setError("");
+    // Today's recorded stops follow the new plan so Progress shows no old time.
+    reapplySleepTimeToToday(time);
     const a = store.getActive();
     if (a) store.setActive(retarget(a, time, Date.now()));
   };
@@ -66,6 +68,7 @@ function Home() {
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     void prepareAlarmAudio();
     store.setSleepTime(time);
+    reapplySleepTimeToToday(time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
   };
