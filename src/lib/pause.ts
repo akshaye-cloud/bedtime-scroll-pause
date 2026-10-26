@@ -7,6 +7,8 @@ export interface ActiveSession {
   promptShownAt?: number | undefined; // persisted start of the unanswered window
   lastActivityAt?: number; // taps or typing inside Pause only
   extensions: number;
+  preExtensions?: number; // +10 mins taken in the 1-hour window before bedtime
+  postExtensions?: number; // +10 mins taken after bedtime
 }
 
 export interface SessionRecord {
@@ -15,6 +17,8 @@ export interface SessionRecord {
   sleepAt: number;
   endedAt: number;
   extensions: number;
+  preExtensions?: number;
+  postExtensions?: number;
   minutesBeyond: number; // 0 if stopped at/before sleep time
   outcome: Outcome;
   endReason?: "inactive_in_pause";
@@ -71,8 +75,15 @@ export function stopInactiveSession(now = Date.now()): SessionRecord | null {
   return record;
 }
 
+/** Count a +10 mins in the 1-hour window (before bedtime) or after bedtime. */
+function countSnooze<T extends { sleepAt: number; preExtensions?: number; postExtensions?: number }>(s: T, at: number) {
+  return at < s.sleepAt
+    ? { preExtensions: (s.preExtensions ?? 0) + 1, postExtensions: s.postExtensions ?? 0 }
+    : { preExtensions: s.preExtensions ?? 0, postExtensions: (s.postExtensions ?? 0) + 1 };
+}
+
 export function extend(s: ActiveSession, now = s.promptAt): ActiveSession {
-  return { ...s, promptShownAt: undefined, extensions: s.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
+  return { ...s, ...countSnooze(s, now), promptShownAt: undefined, extensions: s.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
 }
 
 export function showPrompt(s: ActiveSession, now: number): ActiveSession {
@@ -83,6 +94,7 @@ export function autoSnooze(s: ActiveSession, now: number): ActiveSession | null 
   if (s.promptShownAt === undefined || now < s.promptShownAt + RESPONSE_MIN * 60000) return null;
   return {
     ...s,
+    ...countSnooze(s, s.promptShownAt + RESPONSE_MIN * 60000),
     promptShownAt: undefined,
     extensions: s.extensions + 1,
     promptAt: s.promptShownAt + (RESPONSE_MIN + AUTO_SNOOZE_MIN) * 60000,
@@ -95,10 +107,11 @@ export function retarget(s: ActiveSession, hhmm: string, now: number): ActiveSes
   return { ...s, promptShownAt: undefined, sleepAt, promptAt: sleepAt - WARN_MIN * 60000 + s.extensions * EXTENSION_MIN * 60000 };
 }
 
+/** Outcome depends only on when the session ended; snoozes before bedtime are not penalized. */
 export function finish(s: ActiveSession, now: number): SessionRecord {
   const beyond = Math.max(0, Math.round((now - s.sleepAt) / 60000));
   let outcome: Outcome;
-  if (s.extensions > 0 || beyond > 0) outcome = "continued";
+  if (beyond > 0) outcome = "continued";
   else if (now < s.sleepAt - 60000) outcome = "stopped_early";
   else outcome = "stopped_on_time";
   return {
@@ -107,6 +120,8 @@ export function finish(s: ActiveSession, now: number): SessionRecord {
     sleepAt: s.sleepAt,
     endedAt: now,
     extensions: s.extensions,
+    preExtensions: s.preExtensions ?? 0,
+    postExtensions: s.postExtensions ?? 0,
     minutesBeyond: beyond,
     outcome,
   };
@@ -249,7 +264,7 @@ export function continueVariant(r: SessionRecord, now: number): "before" | "afte
 
 /** "Yes" on the continue prompt: reopen the ended session with a 10-minute extension. */
 export function resumeFromRecord(r: SessionRecord, now: number): ActiveSession {
-  return { startedAt: r.startedAt, sleepAt: r.sleepAt, lastActivityAt: now, extensions: r.extensions + 1, promptAt: now + EXTENSION_MIN * 60000 };
+  return { startedAt: r.startedAt, sleepAt: r.sleepAt, lastActivityAt: now, extensions: r.extensions + 1, ...countSnooze(r, now), promptAt: now + EXTENSION_MIN * 60000 };
 }
 
 export function pendingResume(now = Date.now()): { record: SessionRecord; variant: "before" | "after" } | null {
