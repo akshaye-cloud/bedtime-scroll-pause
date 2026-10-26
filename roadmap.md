@@ -23,3 +23,8 @@
 # Auto-stop timestamp cap
 - [x] Cap new inactivity records at two minutes after bedtime without changing manual stops.
 - [x] Verify overnight reopening records +2 minutes and run timing tests.
+
+# Stopped-time history
+- [ ] Add green, amber, and red stopped times in both Progress views.
+- [ ] Wait one hour for inactivity, show Inactive, and preserve the timestamp cap.
+- [ ] Test boundaries and verify saved history.
