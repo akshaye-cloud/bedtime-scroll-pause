@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -28,6 +28,23 @@ describe("progress per day", () => {
     const s = summarize(latestPerDay([rec("b", day1b, "continued"), rec("a", day1a)]));
     expect(s.total).toBe(1);
     expect(s.rate).toBe(0);
+  });
+});
+
+describe("stopped history per day", () => {
+  const day1a = new Date(2026, 9, 25, 23, 0).getTime();
+  const day1b = new Date(2026, 9, 25, 23, 40).getTime();
+  const day2 = new Date(2026, 9, 26, 23, 0).getTime();
+  it("keeps the latest stop as the day's main record and lists earlier stops", () => {
+    const groups = groupByDay([rec("b", day1b, "continued"), rec("a", day1a)]); // newest first
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.latest.id).toBe("b");
+    expect(groups[0]?.all.map((r) => r.id)).toEqual(["b", "a"]);
+  });
+  it("each day gets its own group with its own latest stop", () => {
+    const groups = groupByDay([rec("2", day2), rec("b", day1b), rec("a", day1a)]);
+    expect(groups.map((g) => g.latest.id)).toEqual(["2", "b"]);
+    expect(groups[1]?.all).toHaveLength(2);
   });
 });
 

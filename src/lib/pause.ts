@@ -181,6 +181,31 @@ export function latestPerDay(records: SessionRecord[]): SessionRecord[] {
   return out;
 }
 
+/** Every stop grouped per calendar day, newest first within each day. */
+export interface DayGroup {
+  key: string;
+  latest: SessionRecord;
+  all: SessionRecord[];
+}
+
+export function groupByDay(records: SessionRecord[]): DayGroup[] {
+  const map = new Map<string, SessionRecord[]>();
+  for (const r of records) {
+    const k = dayKey(r.sleepAt);
+    const arr = map.get(k);
+    if (arr) arr.push(r);
+    else map.set(k, [r]);
+  }
+  const out: DayGroup[] = [];
+  for (const [key, all] of map) {
+    const first = all[0];
+    if (!first) continue;
+    // First-encountered record matches latestPerDay, so stats stay unchanged.
+    out.push({ key, latest: first, all: [...all].sort((a, b) => b.endedAt - a.endedAt) });
+  }
+  return out;
+}
+
 function read<T>(key: string, fallback: T): T {
   try {
     const v = localStorage.getItem(key);
