@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, nextOccurrence, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, nextOccurrence, reminderAt, retarget, store, getSleepLock, setSleepLock, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +80,10 @@ function Home() {
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
         <input id="sleep" type="time" value={time} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
+        {valid && (
+          <p role="status" className="mt-3 text-base">You'll be reminded at <strong className="text-primary">{fmtTime(reminderAt(time, now))}</strong>.</p>
+        )}
+
         <div className="mt-3 flex items-center justify-between text-base">
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
           {!locked && <button onClick={save} className="link-btn">Save time</button>}

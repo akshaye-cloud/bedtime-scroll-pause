@@ -42,6 +42,12 @@ export function nextOccurrence(hhmm: string, now: number): number {
   return d.getTime();
 }
 
+/** When the alarm fires for a sleep time: 1 hour before its next occurrence. */
+export function reminderAt(hhmm: string, now: number): number {
+  return nextOccurrence(hhmm, now) - WARN_MIN * 60000;
+}
+
+
 export function createSession(hhmm: string, now: number): ActiveSession {
   const sleepAt = nextOccurrence(hhmm, now);
   const promptAt = Math.max(now, sleepAt - WARN_MIN * 60000);
