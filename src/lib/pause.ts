@@ -130,12 +130,17 @@ export function retarget(s: ActiveSession, hhmm: string, now: number): ActiveSes
 }
 
 /** Outcome depends only on when the session ended; snoozes before bedtime are not penalized. */
-export function finish(s: ActiveSession, now: number): SessionRecord {
-  const beyond = Math.max(0, Math.round((now - s.sleepAt) / 60000));
+export function classifyEnd(sleepAt: number, endedAt: number): { outcome: Outcome; minutesBeyond: number } {
+  const beyond = Math.max(0, Math.round((endedAt - sleepAt) / 60000));
   let outcome: Outcome;
   if (beyond > 0) outcome = "continued";
-  else if (now < s.sleepAt - 60000) outcome = "stopped_early";
+  else if (endedAt < sleepAt - 60000) outcome = "stopped_early";
   else outcome = "stopped_on_time";
+  return { outcome, minutesBeyond: beyond };
+}
+
+export function finish(s: ActiveSession, now: number): SessionRecord {
+  const { outcome, minutesBeyond } = classifyEnd(s.sleepAt, now);
   return {
     id: `${s.startedAt}`,
     startedAt: s.startedAt,
@@ -144,7 +149,7 @@ export function finish(s: ActiveSession, now: number): SessionRecord {
     extensions: s.extensions,
     preExtensions: s.preExtensions ?? 0,
     postExtensions: s.postExtensions ?? 0,
-    minutesBeyond: beyond,
+    minutesBeyond,
     outcome,
   };
 }
@@ -225,6 +230,29 @@ export function groupByDay(records: SessionRecord[]): DayGroup[] {
     out.push({ key, latest: first, all: [...all].sort((a, b) => b.endedAt - a.endedAt) });
   }
   return out;
+}
+
+/**
+ * A changed sleep time re-plans today's recorded stops so Progress shows the
+ * current plan, never an outdated one; outcome and minutes beyond are
+ * reclassified against the new time. Records from earlier days keep the plan
+ * they ran with. Returns the updated records.
+ */
+export function reapplySleepTimeToToday(hhmm: string, now = Date.now()): SessionRecord[] {
+  const sleepAt = nextOccurrence(hhmm, now);
+  const today = dayKey(now);
+  const updated: SessionRecord[] = [];
+  const records = store.getRecords().map((r) => {
+    if (dayKey(r.sleepAt) !== today) return r;
+    const next: SessionRecord = { ...r, sleepAt, ...classifyEnd(sleepAt, r.endedAt) };
+    updated.push(next);
+    return next;
+  });
+  if (updated.length === 0) return [];
+  store.replaceRecords(records);
+  // Reuse the add event: RecordSync upserts each changed row and Progress reloads.
+  for (const r of updated) window.dispatchEvent(new CustomEvent("pause:record-added", { detail: r }));
+  return updated;
 }
 
 function read<T>(key: string, fallback: T): T {
