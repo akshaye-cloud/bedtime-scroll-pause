@@ -123,16 +123,16 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
         <div className="panel mt-4 overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
             <thead className="text-muted-foreground">
-              <tr><th className="p-3">Date</th><th className="p-3">Planned</th><th className="p-3">Stopped</th><th className="p-3">+10 mins (1-hr window)</th><th className="p-3">+10 mins (after bedtime)</th><th className="p-3">Result</th></tr>
+              <tr><th className="p-3">Date</th><th className="p-3">Planned</th><th className="p-3">+10 mins (1-hr window)</th><th className="p-3">+10 mins (after bedtime)</th><th className="p-3">Stopped</th><th className="p-3">Result</th></tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="p-3">{new Date(r.sleepAt).getDate()} {MONTHS[month]?.slice(0, 3)}</td>
                   <td className="p-3">{fmtTime(r.sleepAt)}</td>
-                  <td className="p-3">{fmtTime(r.endedAt)}</td>
                   <td className="p-3">{r.preExtensions ?? 0}</td>
                   <td className="p-3">{r.postExtensions ?? 0}</td>
+                  <td className="p-3">{fmtTime(r.endedAt)}</td>
                   <td className="p-3">{outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}</td>
                 </tr>
               ))}
