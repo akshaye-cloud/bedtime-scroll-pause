@@ -96,14 +96,15 @@ function Progress() {
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-function MonthTable({ days }: { days: SessionRecord[] }) {
+function MonthTable({ groups }: { groups: DayGroup[] }) {
   const now = new Date();
-  const years = Array.from(new Set([now.getFullYear(), ...days.map((r) => new Date(r.sleepAt).getFullYear())])).sort((a, b) => b - a);
+  const years = Array.from(new Set([now.getFullYear(), ...groups.map((g) => new Date(g.latest.sleepAt).getFullYear())])).sort((a, b) => b - a);
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const rows = days
-    .filter((r) => { const d = new Date(r.sleepAt); return d.getFullYear() === year && d.getMonth() === month; })
-    .sort((a, b) => a.sleepAt - b.sleepAt);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const rows = groups
+    .filter((g) => { const d = new Date(g.latest.sleepAt); return d.getFullYear() === year && d.getMonth() === month; })
+    .sort((a, b) => a.latest.sleepAt - b.latest.sleepAt);
   return (
     <div className="mt-4">
       <div className="flex gap-3">
@@ -129,21 +130,100 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
               <tr><th className="p-3">Date</th><th className="p-3">Planned</th><th className="p-3">+10 mins (1-hr window)</th><th className="p-3">+10 mins (after bedtime)</th><th className="p-3">Stopped</th><th className="p-3">Result</th></tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="p-3">{new Date(r.sleepAt).getDate()} {MONTHS[month]?.slice(0, 3)}</td>
-                  <td className="p-3">{fmtTime(r.sleepAt)}</td>
-                  <td className="p-3">{r.preExtensions ?? 0}</td>
-                  <td className="p-3">{r.postExtensions ?? 0}</td>
-                  <td className="p-3"><StoppedTime record={r} /></td>
-                  <td className="p-3">{recordResultLabel(r)}</td>
-                </tr>
+              {rows.map((g) => (
+                <Fragment key={g.key}>
+                  <tr className="border-t border-border">
+                    <td className="p-3">
+                      <span className="flex items-center gap-2">
+                        {g.all.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setOpen((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
+                            aria-expanded={!!open[g.key]}
+                            aria-label={open[g.key] ? "Hide earlier stops" : "Show earlier stops"}
+                            className="link-btn p-0"
+                          >
+                            <Caret open={!!open[g.key]} />
+                          </button>
+                        )}
+                        {new Date(g.latest.sleepAt).getDate()} {MONTHS[month]?.slice(0, 3)}
+                      </span>
+                    </td>
+                    <td className="p-3">{fmtTime(g.latest.sleepAt)}</td>
+                    <td className="p-3">{g.latest.preExtensions ?? 0}</td>
+                    <td className="p-3">{g.latest.postExtensions ?? 0}</td>
+                    <td className="p-3"><StoppedTime record={g.latest} /></td>
+                    <td className="p-3">{recordResultLabel(g.latest)}</td>
+                  </tr>
+                  {open[g.key] && g.all.slice(1).map((e) => (
+                    <tr key={e.id} className="border-t border-border text-sm text-muted-foreground">
+                      <td className="p-3 pl-10 text-xs">Earlier stop</td>
+                      <td className="p-3">{fmtTime(e.sleepAt)}</td>
+                      <td className="p-3">{e.preExtensions ?? 0}</td>
+                      <td className="p-3">{e.postExtensions ?? 0}</td>
+                      <td className="p-3"><StoppedTime record={e} /></td>
+                      <td className="p-3">{recordResultLabel(e)}</td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>
         </div>
       )}
     </div>
+  );
+}
+
+function Caret({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}>
+      <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function DayItem({ group, open, onToggle }: { group: DayGroup; open: boolean; onToggle: () => void }) {
+  const r = group.latest;
+  const earlier = group.all.slice(1);
+  return (
+    <li className="panel">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-lg">{fmtDate(r.sleepAt)}</p>
+          <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped <StoppedTime record={r} /></p>
+          <p className="text-sm text-muted-foreground">+10 mins: {r.preExtensions ?? 0} in 1-hr window · {r.postExtensions ?? 0} after bedtime</p>
+          {r.endReason === "inactive_in_pause" && (
+            <p className="mt-1 text-sm text-muted-foreground">Automatically ended due to inactivity in Pause. Activity in other apps is unknown.</p>
+          )}
+        </div>
+        <span className={r.endReason === "inactive_in_pause" ? "text-sm text-muted-foreground" : r.outcome === "continued" ? "chip-warn" : "chip-ok"}>
+          {recordResultLabel(r)}
+        </span>
+      </div>
+      {earlier.length > 0 && (
+        <div className="mt-3 border-t border-border pt-3">
+          <button type="button" onClick={onToggle} aria-expanded={open} className="link-btn flex items-center gap-1 text-sm">
+            <Caret open={open} />
+            {open ? "Hide earlier stops" : `Show ${earlier.length} earlier stop${earlier.length > 1 ? "s" : ""}`}
+          </button>
+          {open && (
+            <ul className="mt-3 space-y-2">
+              {earlier.map((e) => (
+                <li key={e.id} className="flex items-center justify-between gap-4 text-sm">
+                  <span className="text-muted-foreground">
+                    Planned {fmtTime(e.sleepAt)} · Stopped <StoppedTime record={e} /> · +10 mins: {e.preExtensions ?? 0} in 1-hr · {e.postExtensions ?? 0} after
+                  </span>
+                  <span className={e.endReason === "inactive_in_pause" ? "text-muted-foreground" : e.outcome === "continued" ? "chip-warn" : "chip-ok"}>
+                    {recordResultLabel(e)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
