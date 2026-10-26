@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, hhmmNow, isPastTime, latestPerDay, retarget, reminderAt, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, hhmmNow, isPastTime, latestPerDay, reapplySleepTimeToToday, retarget, reminderAt, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
