@@ -198,8 +198,10 @@ export function groupByDay(records: SessionRecord[]): DayGroup[] {
   }
   const out: DayGroup[] = [];
   for (const [key, all] of map) {
+    const first = all[0];
+    if (!first) continue;
     // First-encountered record matches latestPerDay, so stats stay unchanged.
-    out.push({ key, latest: all[0], all: [...all].sort((a, b) => b.endedAt - a.endedAt) });
+    out.push({ key, latest: first, all: [...all].sort((a, b) => b.endedAt - a.endedAt) });
   }
   return out;
 }
