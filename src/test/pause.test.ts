@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -56,14 +56,14 @@ describe("pause rules", () => {
   it("never auto-stops before sleep time despite inactivity", () => {
     expect(shouldAutoStop(createSession("23:00", base), base + 60 * min - 1)).toBe(false);
   });
-  it("auto-stops at sleep time when Pause has been inactive for 2 minutes", () => {
-    const s = { ...createSession("23:00", base), lastActivityAt: base + 58 * min };
+  it("auto-stops at sleep time when Pause has been inactive for one hour", () => {
+    const s = { ...createSession("23:00", base), lastActivityAt: base };
     expect(shouldAutoStop(s, base + 60 * min)).toBe(true);
   });
-  it("recent input postpones stopping until exactly 2 inactive minutes", () => {
+  it("recent input postpones stopping until exactly 60 inactive minutes", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
-    expect(shouldAutoStop(s, base + 61 * min - 1)).toBe(false);
-    expect(shouldAutoStop(s, base + 61 * min)).toBe(true);
+    expect(shouldAutoStop(s, base + 119 * min - 1)).toBe(false);
+    expect(shouldAutoStop(s, base + 119 * min)).toBe(true);
   });
   it("the session page offers Stop only after the prompt was extended", () => {
     expect(sessionShowsStop(createSession("23:00", base))).toBe(false);
@@ -80,15 +80,15 @@ describe("pause rules", () => {
   it("refresh preserves the inactivity deadline", () => {
     const s = { ...createSession("23:00", base), lastActivityAt: base + 59 * min };
     const restored = JSON.parse(JSON.stringify(s));
-    expect(shouldAutoStop(restored, base + 61 * min)).toBe(true);
+    expect(shouldAutoStop(restored, base + 119 * min)).toBe(true);
   });
   it("auto-stop clears a snoozed session and saves its reason only once", () => {
     store.clearRecords();
     store.setActive(extend(createSession("23:00", base), base + 59 * min));
-    const record = stopInactiveSession(base + 60 * min);
+    const record = stopInactiveSession(base + 120 * min);
     expect(record?.endReason).toBe("inactive_in_pause");
     expect(store.getActive()).toBeNull();
-    expect(stopInactiveSession(base + 61 * min)).toBeNull();
+    expect(stopInactiveSession(base + 121 * min)).toBeNull();
     expect(store.getRecords()).toHaveLength(1);
     store.clearRecords();
   });
@@ -240,5 +240,36 @@ describe("snooze rule and counts", () => {
     expect(r.outcome).toBe("continued");
     expect(r.preExtensions).toBe(1);
     expect(r.postExtensions).toBe(1);
+  });
+});
+
+describe("stopped-time history", () => {
+  const session = createSession("23:00", base);
+  it("is green from 10 PM through the explicit 10:30 PM example, despite snoozes", () => {
+    const snoozed = extend(session, base + 10 * min);
+    expect(stoppedTimeTone(finish(snoozed, base))).toBe("green");
+    expect(stoppedTimeTone(finish(snoozed, base + 30 * min))).toBe("green");
+    expect(stoppedTimeTone(finish(snoozed, base - 1))).toBe("neutral");
+  });
+  it("is amber after 10:30 PM through exactly 11 PM", () => {
+    expect(stoppedTimeTone(finish(session, base + 30 * min + 1))).toBe("amber");
+    expect(stoppedTimeTone(finish(session, base + 31 * min))).toBe("amber");
+    expect(stoppedTimeTone(finish(session, base + 59 * min))).toBe("amber");
+    expect(stoppedTimeTone(finish(session, session.sleepAt))).toBe("amber");
+  });
+  it("is red strictly after 11 PM despite snoozes", () => {
+    expect(stoppedTimeTone(finish(extend(session, session.sleepAt), session.sleepAt + 1))).toBe("red");
+  });
+  it("marks automatic stops Inactive without changing the stopped-time color", () => {
+    store.clearRecords();
+    store.setActive({ ...session, lastActivityAt: session.sleepAt });
+    expect(stopInactiveSession(session.sleepAt + 60 * min - 1)).toBeNull();
+    const record = stopInactiveSession(session.sleepAt + 60 * min);
+    if (!record) throw new Error("Expected one-hour inactivity stop");
+    expect(recordResultLabel(record)).toBe("Inactive");
+    expect(record.endedAt).toBe(session.sleepAt + 2 * min);
+    expect(stoppedTimeTone(record)).toBe("red");
+    expect(store.getActive()).toBeNull();
+    store.clearRecords();
   });
 });

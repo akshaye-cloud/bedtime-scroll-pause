@@ -26,6 +26,9 @@
   --color-border: var(--border);
   --color-input: var(--border);
   --color-ring: var(--primary);
+  --color-stop-green: var(--stop-green);
+  --color-stop-amber: var(--stop-amber);
+  --color-stop-red: var(--stop-red);
 }
 
 :root {
@@ -40,6 +43,9 @@
   --border: oklch(0.32 0.04 260);
   --ok: oklch(0.78 0.08 160);
   --warn: oklch(0.8 0.1 60);
+  --stop-green: oklch(0.8 0.16 150);
+  --stop-amber: oklch(0.84 0.15 80);
+  --stop-red: oklch(0.75 0.18 25);
 }
 
 @layer base {

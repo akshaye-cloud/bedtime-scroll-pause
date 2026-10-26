@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
-import { fmtDate, fmtTime, latestPerDay, LOCK_EXEMPT_EMAIL, outcomeLabel, store, summarize, type SessionRecord } from "@/lib/pause";
+import { fmtDate, fmtTime, latestPerDay, LOCK_EXEMPT_EMAIL, recordResultLabel, stoppedTimeTone, store, summarize, type SessionRecord } from "@/lib/pause";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/progress")({
@@ -27,7 +27,11 @@ function Progress() {
     const load = () => setRecords(store.getRecords());
     load();
     window.addEventListener("pause:records-synced", load);
-    return () => window.removeEventListener("pause:records-synced", load);
+    window.addEventListener("pause:record-added", load);
+    return () => {
+      window.removeEventListener("pause:records-synced", load);
+      window.removeEventListener("pause:record-added", load);
+    };
   }, []);
 
   if (!records) return <Shell><p className="text-muted-foreground">Loading…</p></Shell>;
@@ -70,14 +74,14 @@ function Progress() {
               <li key={r.id} className="panel flex items-center justify-between gap-4">
                 <div>
                   <p className="text-lg">{fmtDate(r.sleepAt)}</p>
-                  <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped {fmtTime(r.endedAt)}</p>
+                  <p className="text-muted-foreground">Planned {fmtTime(r.sleepAt)} · Stopped <StoppedTime record={r} /></p>
                   <p className="text-sm text-muted-foreground">+10 mins: {r.preExtensions ?? 0} in 1-hr window · {r.postExtensions ?? 0} after bedtime</p>
                   {r.endReason === "inactive_in_pause" && (
-                    <p className="mt-1 text-sm text-muted-foreground">Automatically ended: no taps or typing in Pause for 2 minutes after sleep time was reached. Activity in other apps is unknown.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Automatically ended due to inactivity in Pause. Activity in other apps is unknown.</p>
                   )}
                 </div>
-                <span className={r.outcome === "continued" ? "chip-warn" : "chip-ok"}>
-                  {outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}
+                <span className={r.endReason === "inactive_in_pause" ? "text-sm text-muted-foreground" : r.outcome === "continued" ? "chip-warn" : "chip-ok"}>
+                  {recordResultLabel(r)}
                 </span>
               </li>
             ))}
@@ -132,8 +136,8 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
                   <td className="p-3">{fmtTime(r.sleepAt)}</td>
                   <td className="p-3">{r.preExtensions ?? 0}</td>
                   <td className="p-3">{r.postExtensions ?? 0}</td>
-                  <td className="p-3">{fmtTime(r.endedAt)}</td>
-                  <td className="p-3">{outcomeLabel[r.outcome]}{r.minutesBeyond > 0 ? ` +${r.minutesBeyond}m` : ""}</td>
+                  <td className="p-3"><StoppedTime record={r} /></td>
+                  <td className="p-3">{recordResultLabel(r)}</td>
                 </tr>
               ))}
             </tbody>
@@ -142,6 +146,17 @@ function MonthTable({ days }: { days: SessionRecord[] }) {
       )}
     </div>
   );
+}
+
+const stoppedTimeClasses = {
+  green: "text-stop-green",
+  amber: "text-stop-amber",
+  red: "text-stop-red",
+  neutral: "text-muted-foreground",
+};
+
+function StoppedTime({ record }: { record: SessionRecord }) {
+  return <span className={`font-semibold tabular-nums ${stoppedTimeClasses[stoppedTimeTone(record)]}`}>{fmtTime(record.endedAt)}</span>;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
