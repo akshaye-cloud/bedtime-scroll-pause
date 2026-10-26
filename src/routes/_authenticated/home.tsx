@@ -43,30 +43,29 @@ function Home() {
       if (!data.user) return;
       setUserId(data.user.id);
       setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
-      const locked = getSleepLock(data.user.id);
-      if (locked) { setTime(locked); setSaved(locked); }
     });
   }, []);
 
-  // Once saved, the sleep time is locked for the rest of the day (demo1 is exempt for testing).
-  const locked = !!userId && !lockExempt && getSleepLock(userId) !== null;
+  // The sleep time can be changed any time, but (except demo1) only to a time more than 1 hour away.
+  const locked = false;
+  const soonMsg = "Your sleep time must be more than 1 hour from now, so it can't be saved. Pick a later time.";
+  const isTooSoon = (hhmm: string, at: number) => !lockExempt && nextOccurrence(hhmm, at) - at <= 60 * 60_000;
 
   const valid = /^\d{2}:\d{2}$/.test(time);
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
     if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
-    if (locked) return;
+    if (isTooSoon(time, Date.now())) return setError(soonMsg);
     store.setSleepTime(time); setSaved(time); setError("");
-    if (userId && !lockExempt) setSleepLock(userId, time);
     const a = store.getActive();
     if (a) store.setActive(retarget(a, time, Date.now()));
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
     if (isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
+    if (isTooSoon(time, Date.now())) return setError(soonMsg);
     void prepareAlarmAudio();
     store.setSleepTime(time);
-    if (userId && !lockExempt) setSleepLock(userId, time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
   };
@@ -103,13 +102,11 @@ function Home() {
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
           {!locked && <button onClick={save} className="link-btn">Save time</button>}
         </div>
-        {!locked && !lockExempt && (
-          <p className="mt-3 text-base text-muted-foreground">Note: once saved, your sleep time cannot be changed for the rest of the day.</p>
+        {valid && !past && isTooSoon(time, now) && !error && (
+          <p role="alert" className="mt-3 text-base text-(--warn)">{soonMsg}</p>
         )}
-        {locked && (
-          <p role="status" className="mt-3 text-base" style={{ color: "var(--warn)" }}>
-            Locked for today: your sleep time stays at {fmtTime(nextOccurrence(time, Date.now()))} until tomorrow.
-          </p>
+        {!lockExempt && (
+          <p className="mt-3 text-base text-muted-foreground">You can change your sleep time anytime, as long as it's more than 1 hour away.</p>
         )}
       </div>
 
