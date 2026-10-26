@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, latestPerDay, retarget, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, latestPerDay, retarget, reminderAt, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -48,7 +48,19 @@ describe("stopped history per day", () => {
   });
 });
 
+describe("reminder time", () => {
+  it("is one hour before the sleep time", () => {
+    const now = new Date(2026, 9, 26, 18, 0).getTime();
+    expect(reminderAt("20:30", now)).toBe(new Date(2026, 9, 26, 19, 30).getTime());
+  });
+  it("moves to tomorrow's reminder once today's sleep time has passed", () => {
+    const now = new Date(2026, 9, 26, 21, 0).getTime();
+    expect(reminderAt("20:30", now)).toBe(new Date(2026, 9, 27, 19, 30).getTime());
+  });
+});
+
 describe("daily sleep-time lock", () => {
+
   it("locks the saved time for the rest of the day", () => {
     const now = new Date(2026, 9, 25, 20, 0).getTime();
     expect(getSleepLock("user-a", now)).toBeNull();
