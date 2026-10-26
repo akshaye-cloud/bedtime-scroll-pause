@@ -5,7 +5,7 @@
 
 # Inactivity auto-stop
 - [x] Track taps and typing within Pause without resetting inactivity on refresh.
-- [x] Stop and save after sleep time and two inactive minutes, with a clear recorded reason.
+- [x] Stop and save once sleep time is reached and Pause has been inactive for one hour, with a clear recorded reason.
 - [x] Test timing boundaries and verify activity, automatic stop, and saved results.
 
 # Daily sleep-time lock
@@ -25,6 +25,6 @@
 - [x] Verify overnight reopening records +2 minutes and run timing tests.
 
 # Stopped-time history
-- [ ] Add green, amber, and red stopped times in both Progress views.
-- [ ] Wait one hour for inactivity, show Inactive, and preserve the timestamp cap.
-- [ ] Test boundaries and verify saved history.
+- [x] Add green, amber, and red stopped times in both Progress views.
+- [x] Wait one hour for inactivity, show Inactive, and preserve the timestamp cap.
+- [x] Test boundaries and verify saved history.
