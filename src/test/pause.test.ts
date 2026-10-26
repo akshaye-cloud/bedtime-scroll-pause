@@ -31,6 +31,23 @@ describe("progress per day", () => {
   });
 });
 
+describe("stopped history per day", () => {
+  const day1a = new Date(2026, 9, 25, 23, 0).getTime();
+  const day1b = new Date(2026, 9, 25, 23, 40).getTime();
+  const day2 = new Date(2026, 9, 26, 23, 0).getTime();
+  it("keeps the latest stop as the day's main record and lists earlier stops", () => {
+    const groups = groupByDay([rec("b", day1b, "continued"), rec("a", day1a)]); // newest first
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.latest.id).toBe("b");
+    expect(groups[0]?.all.map((r) => r.id)).toEqual(["b", "a"]);
+  });
+  it("each day gets its own group with its own latest stop", () => {
+    const groups = groupByDay([rec("2", day2), rec("b", day1b), rec("a", day1a)]);
+    expect(groups.map((g) => g.latest.id)).toEqual(["2", "b"]);
+    expect(groups[1]?.all).toHaveLength(2);
+  });
+});
+
 describe("daily sleep-time lock", () => {
   it("locks the saved time for the rest of the day", () => {
     const now = new Date(2026, 9, 25, 20, 0).getTime();
