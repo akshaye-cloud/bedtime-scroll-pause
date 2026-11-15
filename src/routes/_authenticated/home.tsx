@@ -4,6 +4,7 @@ import { Shell, PrimaryButton } from "@/components/Shell";
 import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
+import { HomeTour, markTourSeen, shouldShowTour } from "@/components/HomeTour";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -132,9 +133,9 @@ function Home() {
       </div>
 
       {hasActive ? (
-        <PrimaryButton className="mt-8 w-full" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" data-tour="start-session" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
       ) : (
-        <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid || past}>Start pre-bedtime session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" data-tour="start-session" onClick={start} disabled={!valid || past}>Start pre-bedtime session</PrimaryButton>
       )}
       {target && !hasActive && !past && (
         target - now <= 3600000 ? (
