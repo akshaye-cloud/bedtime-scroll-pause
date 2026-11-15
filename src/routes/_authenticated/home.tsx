@@ -151,6 +151,10 @@ function Home() {
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
 
+      {showTour && userId && (
+        <HomeTour onDone={() => { markTourSeen(userId); setShowTour(false); }} />
+      )}
+
       {midnightCheck !== null && (
         <div role="dialog" aria-modal="true" aria-labelledby="midnight-title" className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 px-6">
           <div className="panel w-full max-w-md text-center">
