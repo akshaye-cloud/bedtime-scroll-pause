@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 type Props = {
-  id: string; label: string; type: string; autoComplete: string; value: string; error?: string;
+  id: string; label: string; type: string; autoComplete: string; value: string; error?: string | undefined;
   onChange: (v: string) => void; pin?: boolean; secret?: boolean;
 };
 
