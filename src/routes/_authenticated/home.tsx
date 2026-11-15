@@ -147,6 +147,21 @@ function Home() {
       )}
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
+
+      {midnightCheck !== null && (
+        <div role="dialog" aria-modal="true" aria-labelledby="midnight-title" className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 px-6">
+          <div className="panel w-full max-w-md text-center">
+            <h2 id="midnight-title" className="font-display text-2xl">Past midnight</h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Your targeted sleep time is <strong className="text-foreground">{midnightCheck} mins</strong> more than expected. Do you want to continue?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <PrimaryButton className="flex-1" onClick={beginSession}>Yes, continue</PrimaryButton>
+              <button className="btn-ghost flex-1" onClick={() => setMidnightCheck(null)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
