@@ -3,16 +3,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PauseMark } from "@/components/PauseMark";
 import { AuthField, AuthIntro } from "@/components/AuthField";
-import { emailError } from "@/lib/auth-rules";
+import { device, emailError } from "@/lib/auth-rules";
 import { GoogleButton } from "@/components/GoogleButton";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Pause — Create your account" },
-      { name: "description", content: "Sign up for Pause with your name, email, password and a confirmation code." },
+      { name: "description", content: "Sign up for Pause with your name, email, and password." },
       { property: "og:title", content: "Pause — Create your account" },
-      { property: "og:description", content: "Create a Pause account and confirm your email with a code." },
+      { property: "og:description", content: "Create a Pause account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -50,14 +50,19 @@ function SignUp() {
       const exists = !res.error || /already|registered|exists/i.test(res.error.message);
       return setErrors(exists ? { email: "An account with this email already exists. Sign in instead." } : { form: res.error!.message });
     }
-    nav({ to: "/verify", search: { email, type: "signup" } });
+    if (!res.data.session) {
+      const r = await supabase.auth.signInWithPassword({ email, password: form.password });
+      if (r.error) return setErrors({ form: "Account created. Please sign in." });
+    }
+    device.markSignedIn();
+    nav({ to: "/home" });
   };
 
   return (
     <div className="min-h-screen bg-night">
       <main className="mx-auto max-w-md px-6 py-14">
         <div className="flex items-center gap-2.5"><PauseMark size={34} className="text-primary" /><span className="font-display text-3xl text-foreground">Pause</span></div>
-        <AuthIntro title="Create your account" subtitle="We'll email you a confirmation code to check your email is real." />
+        <AuthIntro title="Create your account" subtitle="Enter your details to get started." />
         <form onSubmit={submit} noValidate className="panel mt-8">
           <AuthField id="name" label="Name" type="text" autoComplete="name" value={form.name} error={errors.name} onChange={set("name")} />
           <AuthField id="email" label="Email" type="email" autoComplete="email" value={form.email} error={errors.email} onChange={set("email")} />

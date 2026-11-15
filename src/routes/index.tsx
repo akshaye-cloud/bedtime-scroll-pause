@@ -5,7 +5,6 @@ import { PauseMark } from "@/components/PauseMark";
 import { AuthField, AuthIntro } from "@/components/AuthField";
 import { GoogleButton } from "@/components/GoogleButton";
 import { device, emailError } from "@/lib/auth-rules";
-import { requireGoogleCode } from "@/lib/google-verify";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,10 +31,9 @@ function SignIn() {
 
   useEffect(() => {
     const check = async () => {
-      const pending = await requireGoogleCode();
-      if (pending) return void nav({ to: "/verify", search: { email: pending, type: "email" } });
+      sessionStorage.removeItem("pause:googlePending");
       const { data } = await supabase.auth.getUser();
-      if (data.user) void nav({ to: "/home", replace: true });
+      if (data.user) { device.markSignedIn(); void nav({ to: "/home", replace: true }); }
     };
     void check();
     const onDone = () => void check();
@@ -54,10 +52,6 @@ function SignIn() {
     const r = await supabase.auth.signInWithPassword({ email: clean, password });
     setBusy(false);
     if (r.error) {
-      if (/not confirmed/i.test(r.error.message)) {
-        await supabase.auth.resend({ type: "signup", email: clean, options: { emailRedirectTo: window.location.origin } });
-        return void nav({ to: "/verify", search: { email: clean, type: "signup" } });
-      }
       return setErrors({ password: "Wrong email or password." });
     }
     device.markSignedIn();
