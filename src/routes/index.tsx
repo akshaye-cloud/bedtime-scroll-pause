@@ -31,9 +31,10 @@ function SignIn() {
 
   useEffect(() => {
     const check = async () => {
+      const fromGoogle = sessionStorage.getItem("pause:googlePending") === "1";
       sessionStorage.removeItem("pause:googlePending");
       const { data } = await supabase.auth.getUser();
-      if (data.user) { device.markSignedIn(); void nav({ to: "/home", replace: true }); }
+      if (data.user) { if (fromGoogle) device.markSignedIn(); void nav({ to: "/home", replace: true }); }
     };
     void check();
     const onDone = () => void check();
