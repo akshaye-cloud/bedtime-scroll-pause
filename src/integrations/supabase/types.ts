@@ -77,12 +77,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_pins: {
+        Row: {
+          failed_attempts: number
+          locked_until: string | null
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          failed_attempts?: number
+          locked_until?: string | null
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          failed_attempts?: number
+          locked_until?: string | null
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_pin: { Args: { _email: string; _pin: string }; Returns: string }
+      has_my_pin: { Args: never; Returns: boolean }
+      set_my_pin: { Args: { _pin: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
