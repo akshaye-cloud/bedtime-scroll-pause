@@ -57,7 +57,7 @@ function Verify() {
     <div className="min-h-screen bg-night">
       <main className="mx-auto max-w-md px-6 py-14">
         <div className="flex items-center gap-2.5"><PauseMark size={34} className="text-primary" /><span className="font-display text-3xl text-foreground">Pause</span></div>
-        <AuthIntro title="Check your email" subtitle={`We sent a confirmation code to ${email || "your email"}. Enter it below, or tap the link in the email.`} />
+        <AuthIntro title="Check your email" subtitle={`We sent an email to ${email || "your email"}. Tap the Log In or Confirm button in it, or enter the code if the email shows one.`} />
         <form onSubmit={submit} noValidate className="panel mt-8">
           <AuthField id="code" label="Confirmation code" type="text" autoComplete="one-time-code" value={code} error={error}
             onChange={(v) => { setCode(v.replace(/\D/g, "").slice(0, 8)); setError(""); }} />
