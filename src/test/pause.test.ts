@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, hhmmNow, isPastTime, latestPerDay, reapplySleepTimeToToday, retarget, reminderAt, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
+import { autoSnooze, createSession, extend, finish, getSleepLock, groupByDay, hhmmNow, isPastTime, latestPerDay, midnightExcessMin, reapplySleepTimeToToday, retarget, reminderAt, sessionActiveTooLong, sessionShowsStop, setSleepLock, showPrompt, shouldAutoStop, stopInactiveSession, stoppedTimeTone, recordResultLabel, store, summarize, syncActiveToSleepTime, nextOccurrence, type SessionRecord } from "@/lib/pause";
 
 const base = new Date(2026, 0, 1, 22, 0).getTime();
 const min = 60000;
@@ -356,6 +356,24 @@ describe("progress follows the changed sleep time", () => {
     expect(rs.find((r) => r.id === "a1")?.endedAt).toBe(todayPlan + 10 * min);
     expect(rs.find((r) => r.id === "b1")?.endedAt).toBe(laterToday + 5 * min);
     store.clearRecords();
+  });
+});
+
+describe("midnight excess check", () => {
+  it("reports minutes past midnight when a next-day sleep time is more than 20 minutes past 12 AM", () => {
+    const now = new Date(2026, 10, 15, 19, 0).getTime(); // 7 PM
+    expect(midnightExcessMin(nextOccurrence("00:30", now))).toBe(30);
+    expect(midnightExcessMin(nextOccurrence("02:15", now))).toBe(135);
+  });
+  it("stays quiet at exactly 20 minutes past midnight or before", () => {
+    const now = new Date(2026, 10, 15, 19, 0).getTime();
+    expect(midnightExcessMin(nextOccurrence("00:20", now))).toBe(0);
+    expect(midnightExcessMin(nextOccurrence("00:00", now))).toBe(0);
+  });
+  it("ignores evening sleep times on the same or next day", () => {
+    const now = new Date(2026, 10, 15, 19, 0).getTime();
+    expect(midnightExcessMin(nextOccurrence("23:30", now))).toBe(0);
+    expect(midnightExcessMin(nextOccurrence("21:00", now))).toBe(0); // tomorrow 9 PM
   });
 });
 
