@@ -20,7 +20,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 type Key = "name" | "email" | "password" | "pin";
-type Errors = Partial<Record<Key | "form", string>>;
+type Errors = Partial<Record<Key | "form", string | undefined>>;
 
 function SignUp() {
   const nav = useNavigate();

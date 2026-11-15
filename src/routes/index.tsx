@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
   component: SignIn,
 });
 
-type Errors = Partial<Record<"email" | "password" | "pin" | "form", string>>;
+type Errors = Partial<Record<"email" | "password" | "pin" | "form", string | undefined>>;
 
 function SignIn() {
   const nav = useNavigate();
