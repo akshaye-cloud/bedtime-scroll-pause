@@ -32,6 +32,7 @@ function Home() {
   const [now, setNow] = useState(() => Date.now());
   const [tomorrow, setTomorrow] = useState(false);
   const [midnightCheck, setMidnightCheck] = useState<number | null>(null);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15000);
