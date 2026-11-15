@@ -121,7 +121,7 @@ function Home() {
 
         <div className="mt-3 flex items-center justify-between text-base">
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
-          {!locked && <button onClick={save} className="link-btn">Save time</button>}
+          {!locked && <button onClick={save} className="link-btn" data-tour="save-time">Save time</button>}
         </div>
         {valid && !past && isTooSoon(time, now) && !error && (
           <p role="alert" className="mt-3 text-base text-(--warn)">{soonMsg}</p>

@@ -37,8 +37,8 @@ export function Shell({ children }: { children: ReactNode }) {
         </Link>
         <nav className="flex min-w-0 gap-2 text-[13px] sm:gap-5 sm:text-base">
           <Link to="/home" className="nav-link">Home</Link>
-          <Link to="/session" className="nav-link">Session</Link>
-          <Link to="/progress" className="nav-link">Progress</Link>
+          <Link to="/session" className="nav-link" data-tour="nav-session">Session</Link>
+          <Link to="/progress" className="nav-link" data-tour="nav-progress">Progress</Link>
           <Link to="/feedback" className="nav-link">Feedback</Link>
         </nav>
       </header>
