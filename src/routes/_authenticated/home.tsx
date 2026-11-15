@@ -4,6 +4,7 @@ import { Shell, PrimaryButton } from "@/components/Shell";
 import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
+import { HomeTour, markTourSeen, shouldShowTour } from "@/components/HomeTour";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -31,6 +32,7 @@ function Home() {
   const [now, setNow] = useState(() => Date.now());
   const [tomorrow, setTomorrow] = useState(false);
   const [midnightCheck, setMidnightCheck] = useState<number | null>(null);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15000);
@@ -45,6 +47,7 @@ function Home() {
       if (!data.user) return;
       setUserId(data.user.id);
       setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
+      if (shouldShowTour(data.user.id)) setShowTour(true);
     });
   }, []);
 
@@ -121,7 +124,7 @@ function Home() {
 
         <div className="mt-3 flex items-center justify-between text-base">
           <span className="text-muted-foreground">{saved ? `Saved: ${fmtTime(nextOccurrence(saved, Date.now()))}` : "Not saved yet"}</span>
-          {!locked && <button onClick={save} className="link-btn">Save time</button>}
+          {!locked && <button onClick={save} className="link-btn" data-tour="save-time">Save time</button>}
         </div>
         {valid && !past && isTooSoon(time, now) && !error && (
           <p role="alert" className="mt-3 text-base text-(--warn)">{soonMsg}</p>
@@ -132,9 +135,9 @@ function Home() {
       </div>
 
       {hasActive ? (
-        <PrimaryButton className="mt-8 w-full" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" data-tour="start-session" onClick={() => { void prepareAlarmAudio(); nav({ to: "/session" }); }}>Return to active session</PrimaryButton>
       ) : (
-        <PrimaryButton className="mt-8 w-full" onClick={start} disabled={!valid || past}>Start pre-bedtime session</PrimaryButton>
+        <PrimaryButton className="mt-8 w-full" data-tour="start-session" onClick={start} disabled={!valid || past}>Start pre-bedtime session</PrimaryButton>
       )}
       {target && !hasActive && !past && (
         target - now <= 3600000 ? (
@@ -147,6 +150,10 @@ function Home() {
       )}
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
+
+      {showTour && userId && (
+        <HomeTour onDone={() => { markTourSeen(userId); setShowTour(false); }} />
+      )}
 
       {midnightCheck !== null && (
         <div role="dialog" aria-modal="true" aria-labelledby="midnight-title" className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 px-6">
