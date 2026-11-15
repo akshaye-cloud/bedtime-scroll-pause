@@ -47,6 +47,7 @@ function Home() {
       if (!data.user) return;
       setUserId(data.user.id);
       setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
+      if (shouldShowTour(data.user.id)) setShowTour(true);
     });
   }, []);
 
