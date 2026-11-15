@@ -9,8 +9,8 @@ type Search = { email: string; type: "signup" | "email" };
 
 export const Route = createFileRoute("/verify")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    email: typeof s.email === "string" ? s.email : "",
-    type: s.type === "email" ? "email" : "signup",
+    email: typeof s["email"] === "string" ? s["email"] : "",
+    type: s["type"] === "email" ? "email" : "signup",
   }),
   head: () => ({
     meta: [
