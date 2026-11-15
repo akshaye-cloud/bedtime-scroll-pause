@@ -26,6 +26,7 @@ export interface SessionRecord {
 
 export const EXTENSION_MIN = 10;
 export const WARN_MIN = 60;
+export const MIDNIGHT_EXCESS_MIN = 20;
 export const RESPONSE_MIN = 2;
 export const AUTO_SNOOZE_MIN = 8;
 export const INACTIVITY_MIN = 60;
@@ -59,6 +60,17 @@ export function isPastTime(hhmm: string, now: number): boolean {
 export function hhmmNow(now: number): string {
   const d = new Date(now);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/**
+ * Minutes a next-day sleep time runs past midnight (sleep time − 12 AM).
+ * Returns 0 unless the target lands after midnight and more than
+ * MIDNIGHT_EXCESS_MIN past it — the case the start confirmation asks about.
+ */
+export function midnightExcessMin(sleepAt: number): number {
+  const d = new Date(sleepAt);
+  const excess = d.getHours() * 60 + d.getMinutes();
+  return excess > MIDNIGHT_EXCESS_MIN && d.getHours() < 12 ? excess : 0;
 }
 
 

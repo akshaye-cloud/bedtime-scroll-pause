@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,7 @@ function Home() {
   const [lockExempt, setLockExempt] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [tomorrow, setTomorrow] = useState(false);
+  const [midnightCheck, setMidnightCheck] = useState<number | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15000);
@@ -63,15 +64,22 @@ function Home() {
     const a = store.getActive();
     if (a) store.setActive(retarget(a, time, Date.now()));
   };
-  const start = () => {
-    if (!valid) return setError("Please choose a valid time.");
-    if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
-    if (isTooSoon(time, Date.now())) return setError(soonMsg);
+  const beginSession = () => {
+    setMidnightCheck(null);
     void prepareAlarmAudio();
     store.setSleepTime(time);
     reapplySleepTimeToToday(time);
     store.setActive(createSession(time, Date.now()));
     nav({ to: "/session" });
+  };
+  const start = () => {
+    if (!valid) return setError("Please choose a valid time.");
+    if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
+    if (isTooSoon(time, Date.now())) return setError(soonMsg);
+    // A next-day sleep time more than 20 minutes past midnight asks first.
+    const excess = tomorrow ? midnightExcessMin(nextOccurrence(time, Date.now())) : 0;
+    if (excess > 0) return setMidnightCheck(excess);
+    beginSession();
   };
 
   const target = valid ? nextOccurrence(time, now) : null;
@@ -139,6 +147,21 @@ function Home() {
       )}
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
+
+      {midnightCheck !== null && (
+        <div role="dialog" aria-modal="true" aria-labelledby="midnight-title" className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 px-6">
+          <div className="panel w-full max-w-md text-center">
+            <h2 id="midnight-title" className="font-display text-2xl">Past midnight</h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Your targeted sleep time is <strong className="text-foreground">{midnightCheck} mins</strong> more than expected. Do you want to continue?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <PrimaryButton className="flex-1" onClick={beginSession}>Yes, continue</PrimaryButton>
+              <button className="btn-ghost flex-1" onClick={() => setMidnightCheck(null)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
