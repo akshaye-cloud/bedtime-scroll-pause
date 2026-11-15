@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { PauseMark } from "@/components/PauseMark";
 import { supabase } from "@/integrations/supabase/client";
+import { device } from "@/lib/auth-rules";
 
 function Account() {
   const nav = useNavigate();
@@ -15,6 +16,7 @@ function Account() {
   }, []);
   const signOut = async () => {
     await supabase.auth.signOut();
+    device.clearSignedIn();
     nav({ to: "/", replace: true });
   };
   return (

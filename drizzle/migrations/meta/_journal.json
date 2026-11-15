@@ -15,6 +15,13 @@
       "when": 1792943085061,
       "tag": "0001_create_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794745559544,
+      "tag": "0002_pin_signin_and_remove_demos",
+      "breakpoints": true
     }
   ]
 }
