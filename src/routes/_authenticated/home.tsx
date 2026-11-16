@@ -151,11 +151,12 @@ function Home() {
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
 
-      {!showTour && (
+      {(
         <button
           type="button"
           aria-label="Show step-by-step instructions"
           title="How to use Pause"
+          data-tour="info"
           onClick={() => setShowTour(true)}
           className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-primary bg-primary font-display text-xl text-primary-foreground shadow-lg"
         >

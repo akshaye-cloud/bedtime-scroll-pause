@@ -32,6 +32,11 @@ const STEPS: TourStep[] = [
     title: "5. Progress tab",
     body: "Open the Progress tab to see your records.",
   },
+  {
+    selector: '[data-tour="info"]',
+    title: "6. Instructions button",
+    body: "Click on the i button for step by step instructions, anytime you forget how to use Pause.",
+  },
 ];
 
 interface Rect {
