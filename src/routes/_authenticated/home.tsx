@@ -151,7 +151,7 @@ function Home() {
       <ShortcutPanel />
       <p className="mt-10 text-sm text-muted-foreground">Pause only shows prompts inside this page. It does not monitor or block other apps.</p>
 
-      {!showTour && (
+      {(
         <button
           type="button"
           aria-label="Show step-by-step instructions"
