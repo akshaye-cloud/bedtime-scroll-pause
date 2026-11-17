@@ -360,7 +360,12 @@ describe("progress follows the changed sleep time", () => {
 });
 
 import { calStamp, googleCalUrl, icsContent } from "@/lib/pause";
+import { calendarReminderAt } from "@/lib/pause";
 describe("calendar reminder", () => {
+  it("notifies 6 hours before sleep time", () => {
+    const now = new Date(2026, 9, 26, 10, 0).getTime();
+    expect(calendarReminderAt("23:30", now)).toBe(new Date(2026, 9, 26, 17, 30).getTime());
+  });
   const remindAt = Date.UTC(2026, 9, 26, 19, 30); // 7:30 PM UTC
   it("formats timestamps as YYYYMMDDTHHMMSSZ", () => {
     expect(calStamp(remindAt)).toBe("20261026T193000Z");

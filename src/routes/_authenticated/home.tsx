@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, googleCalUrl, hhmmNow, icsContent, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { calendarReminderAt, createSession, fmtFullDate, fmtTime, googleCalUrl, hhmmNow, icsContent, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { HomeTour, markTourSeen, shouldShowTour } from "@/components/HomeTour";
@@ -134,13 +134,13 @@ function Home() {
           <div className="mt-4 border-t border-border pt-4">
             <p className="text-base font-semibold">Sync bedtime reminder</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Get a phone notification at {fmtTime(reminderAt(time, now))} even if Pause is closed. Repeats daily.
+              Get a phone notification at {fmtTime(calendarReminderAt(time, now))} (6 hours before sleep time) even if Pause is closed. Repeats daily with no end date.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <a href={googleCalUrl(reminderAt(time, now))} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 text-center text-base">
+              <a href={googleCalUrl(calendarReminderAt(time, now))} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 text-center text-base">
                 Add to Google Calendar
               </a>
-              <button type="button" className="btn-ghost flex-1 text-base" onClick={() => downloadIcs(reminderAt(time, now))}>
+              <button type="button" className="btn-ghost flex-1 text-base" onClick={() => downloadIcs(calendarReminderAt(time, now))}>
                 Apple / other calendar (.ics)
               </button>
             </div>

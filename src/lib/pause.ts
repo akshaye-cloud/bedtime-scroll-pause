@@ -377,8 +377,13 @@ export function pendingResume(now = Date.now()): { record: SessionRecord; varian
 }
 
 // ---- Calendar reminder (Add to Calendar) ----
+export const CALENDAR_WARN_MIN = 6 * 60;
+/** Calendar notification time: 6 hours before the next sleep time (separate from the in-app alarm). */
+export function calendarReminderAt(hhmm: string, now: number): number {
+  return nextOccurrence(hhmm, now) - CALENDAR_WARN_MIN * 60000;
+}
 const CAL_TITLE = "Pause — wind-down reminder";
-const CAL_DESC = "Your Pause alarm rings in 1 hour. Time to start winding down.";
+const CAL_DESC = "Your sleep time is in 6 hours. Plan your evening and start winding down on time.";
 const CAL_DURATION_MIN = 15;
 
 /** YYYYMMDDTHHMMSSZ (UTC) — the timestamp shape calendar links and .ics files use. */
