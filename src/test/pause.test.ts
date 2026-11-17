@@ -359,6 +359,28 @@ describe("progress follows the changed sleep time", () => {
   });
 });
 
+import { calStamp, googleCalUrl, icsContent } from "@/lib/pause";
+describe("calendar reminder", () => {
+  const remindAt = Date.UTC(2026, 9, 26, 19, 30); // 7:30 PM UTC
+  it("formats timestamps as YYYYMMDDTHHMMSSZ", () => {
+    expect(calStamp(remindAt)).toBe("20261026T193000Z");
+  });
+  it("builds a daily Google Calendar link starting at the reminder time", () => {
+    const url = googleCalUrl(remindAt);
+    expect(url).toContain("https://calendar.google.com/calendar/render?");
+    expect(url).toContain("action=TEMPLATE");
+    expect(url).toContain("dates=20261026T193000Z%2F20261026T194500Z");
+    expect(url).toContain("recur=RRULE%3AFREQ%3DDAILY");
+  });
+  it("builds an .ics file with a daily rule and an alert at the event start", () => {
+    const ics = icsContent(remindAt, remindAt);
+    expect(ics).toContain("DTSTART:20261026T193000Z");
+    expect(ics).toContain("DTEND:20261026T194500Z");
+    expect(ics).toContain("RRULE:FREQ=DAILY");
+    expect(ics).toContain("TRIGGER:PT0M");
+  });
+});
+
 describe("midnight excess check", () => {
   it("reports minutes past midnight when a next-day sleep time is more than 20 minutes past 12 AM", () => {
     const now = new Date(2026, 10, 15, 19, 0).getTime(); // 7 PM

@@ -29,3 +29,7 @@
 - [x] Add green, amber, and red stopped times in both Progress views.
 - [x] Wait one hour for inactivity, show Inactive, and preserve the timestamp cap.
 - [x] Test boundaries and verify saved history.
+
+# Add to Calendar
+- [x] Add a "Sync bedtime reminder" card on Home with a Google Calendar link and an .ics download, set at the reminder time and repeating daily.
+- [x] Test the calendar link and .ics helpers and verify both buttons in the preview.
