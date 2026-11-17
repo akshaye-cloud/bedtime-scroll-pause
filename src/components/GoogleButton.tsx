@@ -3,9 +3,21 @@ import { lovable } from "@/integrations/lovable/index";
 
 export const GOOGLE_PENDING_KEY = "pause:googlePending";
 
+// Google sign-in hands off through a platform page that only exists on Lovable-hosted
+// addresses (and the local preview). On any other host (e.g. the Vercel copy) that page
+// is missing and the phone lands on a 404, so block the attempt with a clear message.
+const oauthHostOk = () => {
+  const h = window.location.hostname;
+  return h === "localhost" || h === "127.0.0.1" || h.endsWith(".lovable.app");
+};
+
 export function GoogleButton({ label = "Continue with Google", onError }: { label?: string; onError: (m: string) => void }) {
   const [busy, setBusy] = useState(false);
   const go = async () => {
+    if (!oauthHostOk()) {
+      onError("Google sign-in isn't available on this web address. Open Pause at bedtime-scroll-pause.lovable.app, or sign in with your email and password here.");
+      return;
+    }
     setBusy(true);
     sessionStorage.setItem(GOOGLE_PENDING_KEY, "1");
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
