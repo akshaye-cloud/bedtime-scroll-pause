@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { createSession, fmtFullDate, fmtTime, hhmmNow, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { createSession, fmtFullDate, fmtTime, googleCalUrl, hhmmNow, icsContent, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { HomeTour, markTourSeen, shouldShowTour } from "@/components/HomeTour";
@@ -88,6 +88,15 @@ function Home() {
   const target = valid ? nextOccurrence(time, now) : null;
   const past = valid && !tomorrow && isPastTime(time, now);
 
+  const downloadIcs = (remindAt: number) => {
+    const url = URL.createObjectURL(new Blob([icsContent(remindAt)], { type: "text/calendar" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pause-reminder.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Shell>
       <h1 className="font-display text-4xl leading-tight">When do you want to stop scrolling?</h1>
@@ -120,6 +129,22 @@ function Home() {
         )}
         {valid && !past && (
           <p role="status" className="mt-3 text-base">You'll be reminded at <strong className="text-primary">{fmtTime(reminderAt(time, now))}</strong>.</p>
+        )}
+        {valid && !past && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-base font-semibold">Sync bedtime reminder</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Get a phone notification at {fmtTime(reminderAt(time, now))} even if Pause is closed. Repeats daily.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <a href={googleCalUrl(reminderAt(time, now))} target="_blank" rel="noopener noreferrer" className="btn-ghost flex-1 text-center text-base">
+                Add to Google Calendar
+              </a>
+              <button type="button" className="btn-ghost flex-1 text-base" onClick={() => downloadIcs(reminderAt(time, now))}>
+                Apple / other calendar (.ics)
+              </button>
+            </div>
+          </div>
         )}
 
         <div className="mt-3 flex items-center justify-between text-base">

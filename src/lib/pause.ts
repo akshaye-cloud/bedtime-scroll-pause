@@ -375,3 +375,51 @@ export function pendingResume(now = Date.now()): { record: SessionRecord; varian
   const variant = record ? continueVariant(record, now) : null;
   return record && variant ? { record, variant } : null;
 }
+
+// ---- Calendar reminder (Add to Calendar) ----
+const CAL_TITLE = "Pause — wind-down reminder";
+const CAL_DESC = "Your Pause alarm rings in 1 hour. Time to start winding down.";
+const CAL_DURATION_MIN = 15;
+
+/** YYYYMMDDTHHMMSSZ (UTC) — the timestamp shape calendar links and .ics files use. */
+export function calStamp(ts: number): string {
+  const d = new Date(ts);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`;
+}
+
+/** Google Calendar "create event" link for the daily wind-down reminder at `remindAt`. */
+export function googleCalUrl(remindAt: number): string {
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: CAL_TITLE,
+    dates: `${calStamp(remindAt)}/${calStamp(remindAt + CAL_DURATION_MIN * 60000)}`,
+    details: CAL_DESC,
+    recur: "RRULE:FREQ=DAILY",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/** .ics file body (Apple Calendar, Outlook, etc.) for the same daily reminder. */
+export function icsContent(remindAt: number, now = Date.now()): string {
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Pause//Wind-down Reminder//EN",
+    "BEGIN:VEVENT",
+    `UID:pause-reminder-${calStamp(remindAt)}@pause`,
+    `DTSTAMP:${calStamp(now)}`,
+    `DTSTART:${calStamp(remindAt)}`,
+    `DTEND:${calStamp(remindAt + CAL_DURATION_MIN * 60000)}`,
+    "RRULE:FREQ=DAILY",
+    `SUMMARY:${CAL_TITLE}`,
+    `DESCRIPTION:${CAL_DESC}`,
+    "BEGIN:VALARM",
+    "TRIGGER:PT0M",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${CAL_TITLE}`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
