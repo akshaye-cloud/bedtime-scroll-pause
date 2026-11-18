@@ -30,7 +30,7 @@ function Home() {
   const [userId, setUserId] = useState<string | null>(null);
   const [lockExempt, setLockExempt] = useState(false);
   const [now, setNow] = useState(() => Date.now());
-  const [tomorrow, setTomorrow] = useState(false);
+  const tomorrow = false;
   const [midnightCheck, setMidnightCheck] = useState<number | null>(null);
   const [showTour, setShowTour] = useState(false);
 
@@ -41,12 +41,12 @@ function Home() {
 
   useEffect(() => {
     const t = store.getSleepTime();
-    if (t) { setTime(t); setSaved(t); if (isPastTime(t, Date.now())) setTomorrow(true); }
+    if (t) { setTime(t); setSaved(t); }
     setHasActive(!!store.getActive());
     void supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
       setUserId(data.user.id);
-      const ex = data.user.email === LOCK_EXEMPT_EMAIL; setLockExempt(ex); if (!ex) setTomorrow(false);
+      const ex = data.user.email === LOCK_EXEMPT_EMAIL; setLockExempt(ex);
       if (shouldShowTour(data.user.id)) setShowTour(true);
     });
   }, []);
@@ -108,17 +108,8 @@ function Home() {
       <div className="panel mt-8">
         <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} min={lockExempt ? (tomorrow ? undefined : hhmmNow(now)) : "19:00"} max={lockExempt ? undefined : "23:30"} step={lockExempt ? undefined : 300} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        <input id="sleep" type="time" value={time} min={lockExempt ? hhmmNow(now) : "19:00"} max={lockExempt ? undefined : "23:30"} step={lockExempt ? undefined : 300} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
         {!lockExempt && <p className="mt-2 text-sm text-muted-foreground">Choose between 7:00 PM and 11:30 PM, in 5-minute steps.</p>}
-        {lockExempt && <div role="group" aria-label="Sleep day" className="mt-3 flex gap-2">
-          {[false, true].map((t) => (
-            <button key={String(t)} type="button" aria-pressed={tomorrow === t} onClick={() => { setTomorrow(t); setError(""); }}
-              className={`rounded-md border px-4 py-2 text-base ${tomorrow === t ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>
-              {t ? `Tomorrow (${fmtFullDate(now + 86400000).split(",")[0]})` : "Today"}
-            </button>
-          ))}
-        </div>}
-        {tomorrow && valid && <p className="mt-2 text-base text-muted-foreground">Sleep time: {fmtFullDate(nextOccurrence(time, now))}, {fmtTime(nextOccurrence(time, now))}. Pick a time after midnight, e.g. 00:30.</p>}
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         {valid && past && !error && (
           locked ? (
