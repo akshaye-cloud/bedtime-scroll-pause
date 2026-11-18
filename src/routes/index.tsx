@@ -59,6 +59,15 @@ function SignIn() {
     nav({ to: "/home" });
   };
 
+  const guest = async () => {
+    setBusy(true);
+    const r = await supabase.auth.signInAnonymously();
+    setBusy(false);
+    if (r.error) return setErrors({ form: "Guest sign-in isn't available right now. Please try again." });
+    device.markSignedIn();
+    nav({ to: "/home" });
+  };
+
   return (
     <div className="min-h-screen bg-night">
       <main className="mx-auto max-w-md px-6 py-14">
@@ -71,6 +80,7 @@ function SignIn() {
           <button type="submit" disabled={busy} className="btn-primary mt-7 w-full">{busy ? "Please wait…" : "Sign in"}</button>
           <GoogleButton label="Sign in with Google" onError={(m) => setErrors({ form: m })} />
         </form>
+        <button type="button" onClick={guest} disabled={busy} className="btn-ghost mt-4 w-full">Continue as guest</button>
         <p className="mt-4 text-base text-muted-foreground">New to Pause? <Link to="/signup" className="link-btn">Create an account</Link></p>
         <p className="mt-2 text-sm text-muted-foreground">For your safety, you'll be signed out every 7 days.</p>
       </main>

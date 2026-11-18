@@ -11,7 +11,7 @@ function Account() {
     void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: p } = await supabase.from("profiles").select("name").eq("id", data.user.id).maybeSingle();
-      setName(p?.name || data.user.email || "");
+      setName(p?.name || data.user.email || (data.user.is_anonymous ? "Guest" : ""));
     });
   }, []);
   const signOut = async () => {
