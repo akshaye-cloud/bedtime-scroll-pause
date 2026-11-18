@@ -108,8 +108,8 @@ function Home() {
       <div className="panel mt-8">
         <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} min={lockExempt ? hhmmNow(now) : "19:00"} max={lockExempt ? undefined : "23:30"} step={lockExempt ? undefined : 300} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
-        {!lockExempt && <p className="mt-2 text-sm text-muted-foreground">Choose between 7:00 PM and 11:30 PM, in 5-minute steps.</p>}
+        <input id="sleep" type="time" value={time} min={lockExempt ? hhmmNow(now) : "19:00"} max={lockExempt ? undefined : "23:30"} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        {!lockExempt && <p className="mt-2 text-sm text-muted-foreground">Choose between 7:00 PM and 11:30 PM.</p>}
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         {valid && past && !error && (
           locked ? (
