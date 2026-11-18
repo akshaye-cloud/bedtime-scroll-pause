@@ -10,7 +10,7 @@ const STEPS: TourStep[] = [
   {
     selector: "#sleep",
     title: "1. Set the sleep time",
-    body: "Pick the time you want to stop scrolling tonight. If you choose a time more than 12:20 AM the next day, you'll get a pop-up asking you to confirm.",
+    body: "Pick the time you want to stop scrolling tonight, between 7:00 PM and 11:30 PM in 5-minute steps.",
   },
   {
     selector: '[data-tour="save-time"]',
