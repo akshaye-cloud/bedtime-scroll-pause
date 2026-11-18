@@ -433,8 +433,9 @@ export function icsContent(remindAt: number, now = Date.now()): string {
 export function sleepWindowError(hhmm: string): string {
   const m = /^(\d{2}):(\d{2})$/.exec(hhmm);
   if (!m) return "Please choose a valid time.";
-  const mins = +m[1] * 60 + +m[2];
+  const h = Number(m[1] ?? 0), mm = Number(m[2] ?? 0);
+  const mins = h * 60 + mm;
   if (mins < 19 * 60 || mins > 23 * 60 + 30) return "Sleep time must be between 7:00 PM and 11:30 PM.";
-  if (+m[2] % 5 !== 0) return "Minutes must be a multiple of 5 (e.g. 9:05, 9:10).";
+  if (mm % 5 !== 0) return "Minutes must be a multiple of 5 (e.g. 9:05, 9:10).";
   return "";
 }
