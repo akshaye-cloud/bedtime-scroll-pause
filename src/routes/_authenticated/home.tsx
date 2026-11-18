@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shell, PrimaryButton } from "@/components/Shell";
-import { calendarReminderAt, createSession, fmtFullDate, fmtTime, googleCalUrl, hhmmNow, icsContent, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL } from "@/lib/pause";
+import { calendarReminderAt, createSession, fmtFullDate, fmtTime, googleCalUrl, hhmmNow, icsContent, isPastTime, midnightExcessMin, nextOccurrence, reminderAt, reapplySleepTimeToToday, retarget, store, LOCK_EXEMPT_EMAIL, sleepWindowError } from "@/lib/pause";
 import { prepareAlarmAudio } from "@/lib/alarm";
 import { ShortcutPanel } from "@/components/ShortcutPanel";
 import { HomeTour, markTourSeen, shouldShowTour } from "@/components/HomeTour";
@@ -46,7 +46,7 @@ function Home() {
     void supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
       setUserId(data.user.id);
-      setLockExempt(data.user.email === LOCK_EXEMPT_EMAIL);
+      const ex = data.user.email === LOCK_EXEMPT_EMAIL; setLockExempt(ex); if (!ex) setTomorrow(false);
       if (shouldShowTour(data.user.id)) setShowTour(true);
     });
   }, []);
@@ -57,8 +57,10 @@ function Home() {
   const isTooSoon = (hhmm: string, at: number) => !lockExempt && nextOccurrence(hhmm, at) - at <= 60 * 60_000;
 
   const valid = /^\d{2}:\d{2}$/.test(time);
+  const windowErr = () => (lockExempt ? "" : sleepWindowError(time));
   const save = () => {
     if (!valid) return setError("Please choose a valid time.");
+    if (windowErr()) return setError(windowErr());
     if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     store.setSleepTime(time); setSaved(time); setError("");
@@ -77,6 +79,7 @@ function Home() {
   };
   const start = () => {
     if (!valid) return setError("Please choose a valid time.");
+    if (windowErr()) return setError(windowErr());
     if (!tomorrow && isPastTime(time, Date.now())) return setError(`You can't set a sleep time earlier than the current time (${fmtTime(Date.now())}). Pick a later time.`);
     if (isTooSoon(time, Date.now())) return setError(soonMsg);
     // A next-day sleep time more than 20 minutes past midnight asks first.
@@ -105,15 +108,16 @@ function Home() {
       <div className="panel mt-8">
         <p role="status" className="text-xl font-semibold">{fmtFullDate(now)}</p>
         <label htmlFor="sleep" className="mt-4 block text-base text-muted-foreground">Sleep time</label>
-        <input id="sleep" type="time" value={time} min={tomorrow ? undefined : hhmmNow(now)} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
-        <div role="group" aria-label="Sleep day" className="mt-3 flex gap-2">
+        <input id="sleep" type="time" value={time} min={lockExempt ? (tomorrow ? undefined : hhmmNow(now)) : "19:00"} max={lockExempt ? undefined : "23:30"} step={lockExempt ? undefined : 300} onChange={(e) => { setTime(e.target.value); setError(""); }} className="time-input mt-2" disabled={locked} />
+        {!lockExempt && <p className="mt-2 text-sm text-muted-foreground">Choose between 7:00 PM and 11:30 PM, in 5-minute steps.</p>}
+        {lockExempt && <div role="group" aria-label="Sleep day" className="mt-3 flex gap-2">
           {[false, true].map((t) => (
             <button key={String(t)} type="button" aria-pressed={tomorrow === t} onClick={() => { setTomorrow(t); setError(""); }}
               className={`rounded-md border px-4 py-2 text-base ${tomorrow === t ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>
               {t ? `Tomorrow (${fmtFullDate(now + 86400000).split(",")[0]})` : "Today"}
             </button>
           ))}
-        </div>
+        </div>}
         {tomorrow && valid && <p className="mt-2 text-base text-muted-foreground">Sleep time: {fmtFullDate(nextOccurrence(time, now))}, {fmtTime(nextOccurrence(time, now))}. Pick a time after midnight, e.g. 00:30.</p>}
         {error && <p role="alert" className="mt-2 text-destructive">{error}</p>}
         {valid && past && !error && (
